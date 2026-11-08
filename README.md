@@ -29,7 +29,4 @@ node dev-server.mjs 3111
 ```powershell
 vercel --prod
 ```
-
-Tài liệu chi tiết: [voz-forum-deploy.md](./voz-forum-deploy.md) · API voz.vn: [voz-app-api.md](./voz-app-api.md)
-
 Giấy phép: GPL-3.0

@@ -3,6 +3,8 @@
   "regions": ["sin1"],
   "outputDirectory": "public",
   "rewrites": [
+    { "source": "/api", "destination": "/api/handler?__path=" },
+    { "source": "/api/:path*", "destination": "/api/handler?__path=:path*" },
     { "source": "/((?!api/|assets/|userscript/).*)", "destination": "/index.html" }
   ],
   "headers": [

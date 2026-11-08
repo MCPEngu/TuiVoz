@@ -23,7 +23,7 @@ const MIME = {
   '.txt': 'text/plain; charset=utf-8',
 };
 
-const { default: handler } = await import('./api/[...path].js');
+const { default: handler } = await import('./api/handler.js');
 
 // Everything under /assets/ plus the app shell's own filenames must be a real file; only
 // other paths are SPA routes (see serveStatic).
