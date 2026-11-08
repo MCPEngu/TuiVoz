@@ -1,0 +1,23 @@
+/* Reaction buttons. */
+
+.reaction {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  border-radius: var(--radius);
+  font-size: calc(14px * var(--ui-scale));
+  line-height: 1.5;
+  color: var(--link);
+  white-space: nowrap;
+}
+.reaction .reaction-image { width: 18px; height: 18px; vertical-align: middle; }
+.reaction:hover { color: var(--link-hover); }
+.reaction.has-reaction { color: var(--accent-text); font-weight: var(--fw-bold); }
+.reaction[aria-disabled="true"] { opacity: .5; cursor: default; }
+.reaction-count {
+  font-size: calc(12px * var(--ui-scale));
+  font-weight: var(--fw-bold);
+  color: var(--dimmed);
+}
+.reaction.has-reaction .reaction-count { color: var(--accent-text); }
