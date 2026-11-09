@@ -24,6 +24,8 @@ import { importImgurAlbum } from '../lib/imgurImport.js';
 import { ICON_DELETE, ICON_EDIT } from '../core/icons.js';
 
 const dragIcon = '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>';
+const moveUpIcon = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 14 6-6 6 6"/></svg>';
+const moveDownIcon = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 10 6 6 6-6"/></svg>';
 
 const SCROLL_HELP = {
   on: 'Tự nối trang kế tiếp khi cuộn tới cuối danh sách hoặc cuối chủ đề.',
@@ -93,6 +95,10 @@ function shortcutRows() {
       (item, index) => `<li class="shortcut-row" draggable="true" data-shortcut-id="${esc(item.id)}" data-index="${index}">
         <span class="shortcut-handle" title="Kéo để đổi thứ tự" aria-hidden="true">${dragIcon}</span>
         <span class="shortcut-index">${index + 1}</span>
+        <span class="settings-reorder-controls">
+          <button type="button" class="settings-reorder-button" data-move-shortcut="up" aria-label="Đưa ${esc(item.name)} lên"${index === 0 ? ' disabled' : ''}>${moveUpIcon}</button>
+          <button type="button" class="settings-reorder-button" data-move-shortcut="down" aria-label="Đưa ${esc(item.name)} xuống"${index === navShortcuts.length - 1 ? ' disabled' : ''}>${moveDownIcon}</button>
+        </span>
         <span class="shortcut-main">
           <span class="shortcut-name">${esc(item.name)}</span>
           <span class="shortcut-url">${esc(item.url)}</span>
@@ -112,6 +118,10 @@ function stickerAlbumRows() {
       (album, index) => `<li class="sticker-album-row" draggable="true" data-album-id="${esc(album.id)}" data-index="${index}">
         <span class="shortcut-handle" title="Kéo để đổi thứ tự" aria-hidden="true">${dragIcon}</span>
         <span class="shortcut-index">${index + 1}</span>
+        <span class="settings-reorder-controls">
+          <button type="button" class="settings-reorder-button" data-move-album="up" aria-label="Đưa album ${esc(album.name)} lên"${index === 0 ? ' disabled' : ''}>${moveUpIcon}</button>
+          <button type="button" class="settings-reorder-button" data-move-album="down" aria-label="Đưa album ${esc(album.name)} xuống"${index === albums.length - 1 ? ' disabled' : ''}>${moveDownIcon}</button>
+        </span>
         <span class="sticker-album-preview"><img src="${esc(album.preview)}" alt="" loading="lazy"></span>
         <span class="shortcut-main">
           <span class="shortcut-name">${esc(album.name)}</span>
@@ -119,7 +129,7 @@ function stickerAlbumRows() {
         </span>
         <label class="sticker-album-select"><input type="checkbox" class="album-select" data-id="${esc(album.id)}" aria-label="Chọn ${esc(album.name)}"></label>
         <button type="button" class="button button--small sticker-rename" data-rename="${esc(album.id)}" title="Đổi tên" aria-label="Đổi tên ${esc(album.name)}">${ICON_EDIT}</button>
-        <button type="button" class="button button--small sticker-export" data-export="${esc(album.id)}" title="Xuất album" aria-label="Xuất album ${esc(album.name)}">⇩</button>
+        <button type="button" class="button button--small sticker-export" data-export="${esc(album.id)}" title="Xuất album" aria-label="Xuất album ${esc(album.name)}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0 5-5m-5 5-5-5M5 19h14"/></svg></button>
         <button type="button" class="button button--small sticker-images" data-images="${esc(album.id)}" title="Xem/sửa hình ảnh" aria-label="Xem hình ảnh ${esc(album.name)}">🖼️</button>
         <button type="button" class="button button--small button--danger sticker-delete" data-delete="${esc(album.id)}" title="Xoá album" aria-label="Xoá ${esc(album.name)}">${ICON_DELETE}</button>
       </li>`
@@ -225,7 +235,7 @@ function settingsHtml(active = settingsTabFromHash()) {
       <section class="settings-panel" id="panel-shortcuts" role="tabpanel" aria-labelledby="tab-shortcuts"${active === 'shortcuts' ? '' : ' hidden'}>
         <div class="block-body--pad">
           <p class="settings-count" id="shortcut-count">${navShortcuts.length} phím tắt</p>
-          <p class="formHint">Phím tắt hiện cạnh <strong>Bài mới</strong> trên thanh trên cùng, theo thứ tự từ trên xuống dưới, trái sang phải. Kéo thả để đổi thứ tự.</p>
+          <p class="formHint">Phím tắt hiện cạnh <strong>Bài mới</strong> trên thanh trên cùng, theo thứ tự từ trên xuống dưới, trái sang phải. Kéo thả hoặc dùng nút ↑/↓ trên mobile để đổi thứ tự.</p>
           <ul class="shortcut-list" id="shortcut-list">${shortcutRows()}</ul>
           <form id="shortcut-form" class="shortcut-form" autocomplete="off">
             <div class="formRow">
@@ -597,6 +607,16 @@ function wireStickerSettings() {
     toast(`Đã xoá ${ids.length} album`);
   });
 
+  albumList.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-move-album]');
+    if (!button) return;
+    const row = button.closest('.sticker-album-row');
+    const rows = [...albumList.querySelectorAll('.sticker-album-row')];
+    const index = rows.indexOf(row);
+    moveAlbum(row.dataset.albumId, index + (button.dataset.moveAlbum === 'up' ? -1 : 1));
+    rerenderExtras();
+  });
+
   albumList.addEventListener('dragstart', (event) => {
     const row = event.target.closest('.sticker-album-row');
     if (!row) return;
@@ -661,7 +681,7 @@ function openAlbumEditor(albumId, onChange) {
     </div>
     <div class="formRow">
       <label>Hình ảnh<span class="sticker-images-count" id="album-edit-count"></span></label>
-      <p class="formHint">Kéo thả một sticker sang vị trí khác để đổi thứ tự. Thứ tự này chính là thứ tự hiện trong bảng chọn sticker.</p>
+      <p class="formHint">Kéo thả sticker hoặc dùng nút ↑/↓ trên mobile để đổi thứ tự trong bảng chọn sticker.</p>
       <div class="sticker-images-grid" id="album-edit-grid"></div>
     </div>
     <p class="formError" id="album-edit-error" hidden></p>`;
@@ -710,6 +730,24 @@ function openAlbumEditor(albumId, onChange) {
         render();
       });
 
+      const moveControls = document.createElement('span');
+      moveControls.className = 'sticker-image-move-controls';
+      for (const [direction, offset, symbol] of [['up', -1, '↑'], ['down', 1, '↓']]) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'sticker-image-move';
+        button.textContent = symbol;
+        button.disabled = index + offset < 0 || index + offset >= images.length;
+        button.setAttribute('aria-label', `${direction === 'up' ? 'Đưa lên' : 'Đưa xuống'} hình ảnh ${index + 1}`);
+        button.addEventListener('click', (event) => {
+          event.stopPropagation();
+          const [moved] = images.splice(index, 1);
+          images.splice(index + offset, 0, moved);
+          render();
+        });
+        moveControls.append(button);
+      }
+
       cell.addEventListener('dragstart', (event) => {
         dragFrom = index;
         cell.classList.add('is-dragging');
@@ -732,7 +770,7 @@ function openAlbumEditor(albumId, onChange) {
         render();
       });
 
-      cell.append(image, badge, remove);
+      cell.append(image, badge, remove, moveControls);
       grid.append(cell);
     });
   };
@@ -846,6 +884,15 @@ export function viewSettings() {
   cancelBtn.addEventListener('click', resetForm);
 
   list.addEventListener('click', (event) => {
+    const moveBtn = event.target.closest('[data-move-shortcut]');
+    if (moveBtn) {
+      const row = moveBtn.closest('.shortcut-row');
+      const rows = [...list.querySelectorAll('.shortcut-row')];
+      const index = rows.indexOf(row);
+      moveShortcut(row.dataset.shortcutId, index + (moveBtn.dataset.moveShortcut === 'up' ? -1 : 1));
+      rerenderList();
+      return;
+    }
     const editBtn = event.target.closest('[data-edit]');
     if (editBtn) {
       const shortcut = loadSettings().navShortcuts.find((item) => item.id === editBtn.dataset.edit);

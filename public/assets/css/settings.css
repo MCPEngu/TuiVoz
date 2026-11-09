@@ -123,7 +123,28 @@
 .settings-backup .code-box { min-height: 190px; font-family: Consolas, "Courier New", monospace; font-size: calc(12px * var(--ui-scale)); white-space: pre; }
 .settings-backup .shortcut-form-actions { margin-top: 10px; }
 
+.settings-reorder-controls { display: none; }
+.settings-reorder-controls button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  min-height: 28px;
+  padding: 0 5px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  line-height: 1;
+  cursor: pointer;
+}
+.settings-reorder-controls button svg { display: block; width: 14px; height: 14px; }
+.settings-reorder-controls button:disabled { opacity: .4; cursor: default; }
+
 @media (max-width: 620px) {
+  .settings-reorder-controls { display: flex; flex: 0 0 auto; flex-direction: column; gap: 3px; }
+  .shortcut-handle { display: none; }
   .shortcut-row { gap: 6px; padding: 8px; }
   .shortcut-index { flex-basis: 16px; }
   .shortcut-row .button--small { padding: 5px; }
