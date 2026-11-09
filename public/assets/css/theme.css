@@ -55,4 +55,4 @@
 }
 
 /* Selection colour follows the accent in both themes. */
-:root[data-theme="dark"] ::selection { background: #3f4e6c; color: var(--text); }
+:root[data-theme="dark"] ::selection { background: #414849; color: var(--text); }

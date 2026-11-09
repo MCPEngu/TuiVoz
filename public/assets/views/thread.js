@@ -64,7 +64,6 @@ function focusReplyEnd() {
 }
 
 function wireSignatureToggles(root) {
-  if (!matchMedia('(max-width: 620px)').matches) return;
   root.querySelectorAll('.message-signature').forEach((signature) => {
     const button = signature.nextElementSibling;
     if (!button?.matches('.signature-toggle') || signature.dataset.toggleReady) return;

@@ -319,6 +319,8 @@
   padding: 0;
 }
 .actionBar-action--icon svg { display: block; }
+:root[data-theme="dark"] .actionBar-action { color: var(--text); }
+:root[data-theme="dark"] .actionBar-set--left .actionBar-action { color: var(--text); }
 .actionBar-set--left .actionBar-action { color: var(--dimmed); }
 .actionBar-set--left .actionBar-action:hover { color: var(--link-hover); }
 .actionBar-set--left .actionBar-action--danger:hover { color: var(--danger-text-strong); }
@@ -329,8 +331,20 @@
   border-top: 1px dashed var(--border);
   font-size: calc(12px * var(--post-scale));
   color: var(--dimmed);
-  max-height: 90px;
+  max-height: 5em;
   overflow: hidden;
+}
+.message-signature.is-expanded { max-height: none; }
+.signature-toggle:not([hidden]) {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  color: var(--dimmed);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
 }
 
 /* Grey strip listing who reacted, like voz.vn. */
