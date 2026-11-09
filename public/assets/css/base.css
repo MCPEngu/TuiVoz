@@ -9,9 +9,10 @@
    different site rather than a reading preference. */
 :root {
   /* chrome — dark in both themes */
-  --header-bg: #181a1b;
+  --header-bg: #363d45;
   --header-fg: #d1d4d6;
-  --nav-bg: #181a1b;
+  --nav-bg: #363d45;
+  --chrome-page-bg: #373d43;
   --nav-fg: #d1d4d6;
   --nav-active: #ff6600;
   /* Accent for text/state on the reading surface. --nav-active is the untouched brand orange
@@ -44,7 +45,7 @@
      component. #606569 is the lightest grey that still clears 4.5:1 on all of them (worst
      case 4.53 on the #dfe2e4 chip), so secondary text never drops below WCAG AA. */
   --dimmed: #606569;
-  --page-bg: #373d43;
+  --page-bg: var(--chrome-page-bg);
   --content-bg: #f4f5f5;
   --content-bg-alt: #eef0f1;
   --border: #d5d8db;
@@ -127,6 +128,9 @@
    above WCAG AA against their own background — see the contrast notes in
    voz-forum-deploy.md §Giao diện. */
 :root[data-theme="dark"] {
+  --header-bg: #181a1b;
+  --nav-bg: #181a1b;
+  --chrome-page-bg: #181a1b;
   --block-header-bg: #46536b;
   --block-header-hover: #526180;
   --block-header-fg: #e7ebf2;
@@ -136,7 +140,7 @@
   --text: #e4e6ea;
   --dimmed: #9aa1ab;
   --dimmed-2: #a8b0bb;
-  --page-bg: #181a1b;
+  --page-bg: var(--chrome-page-bg);
   --content-bg: #202324;
   --content-bg-alt: #252829;
   --border: #3a424c;
