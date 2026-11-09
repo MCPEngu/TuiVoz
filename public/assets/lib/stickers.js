@@ -1,12 +1,17 @@
-// Sticker albums, ported from the "Voz Emoji" userscript (v2.3, GM_setValue/GM_getValue)
-// to browser localStorage so the same feature set works inside this client.
-//
-// Storage keys (mirrors the userscript, namespaced under voz-stickers):
-//   voz-stickers:v1            → album list (see normalizeAlbum)
-//   voz-stickers:recent:v1     → recently used stickers
-
+// Sticker albums and recents are stored in IndexedDB; legacy localStorage keys are migrated
+// on startup so existing collections remain available.
+const DB_NAME = 'TuiVozStickerStorage';
+const DB_VERSION = 1;
+const STORE_NAME = 'records';
 const ALBUM_KEY = 'voz-stickers:v1';
 const RECENT_KEY = 'voz-stickers:recent:v1';
+let database;
+let albumsCache = [];
+let recentCache = [];
+let writeQueue = Promise.resolve();
+let pendingSnapshot = null;
+let writing = false;
+let storageError = null;
 
 export const MAX_RECENT = 30;
 export const PARALLEL_DOWNLOADS = 5;
@@ -17,27 +22,39 @@ export const DEFAULT_CLIENT_ID = '66850c248e91c93';
 export const MAX_ALBUMS = 100;
 export const MAX_IMAGES = 500;
 export const MAX_NAME = 60;
-const MAX_BASE64 = 400_000;
+const MAX_BASE64 = 20_000_000;
 
 export function makeStickerId(prefix = 'a') {
   return `${prefix}${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
 }
 
 function readJson(key, fallback) {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallback;
-  } catch {
-    return fallback;
-  }
+  return key === ALBUM_KEY ? albumsCache : key === RECENT_KEY ? recentCache : fallback;
+}
+
+function schedulePersist() {
+  pendingSnapshot = { albums: albumsCache, recent: recentCache };
+  if (writing) return;
+  writing = true;
+  writeQueue = Promise.resolve().then(async () => {
+    while (pendingSnapshot) {
+      const snapshot = pendingSnapshot;
+      pendingSnapshot = null;
+      await persistRecords(snapshot.albums, snapshot.recent);
+    }
+  }).catch((error) => {
+    storageError = error;
+    console.error('Could not save sticker data to IndexedDB', error);
+  }).finally(() => {
+    writing = false;
+    if (pendingSnapshot) schedulePersist();
+  });
 }
 
 function writeJson(key, value) {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch {
-    /* Storage full or disabled; the caller keeps the in-memory copy. */
-  }
+  if (key === ALBUM_KEY) albumsCache = value;
+  if (key === RECENT_KEY) recentCache = value;
+  schedulePersist();
 }
 
 // Kept as a function so callers read as "the key to use" rather than importing a constant,
@@ -49,8 +66,9 @@ export function getClientId() {
 // https URLs only, or a data:image base64 preview. Never javascript:/http:.
 export function normalizeStickerUrl(value) {
   const raw = String(value ?? '').trim();
-  if (!raw || raw.length > 1000) return null;
-  if (/^data:image\/(png|jpe?g|gif|webp|svg\+xml);base64,/i.test(raw)) return raw;
+  if (!raw) return null;
+  if (/^data:image\/(png|jpe?g|gif|webp|svg\+xml);base64,/i.test(raw)) return raw.length <= MAX_BASE64 ? raw : null;
+  if (raw.length > 1000) return null;
   try {
     const url = new URL(raw);
     if (url.protocol !== 'https:') return null;
@@ -287,3 +305,85 @@ export function albumToStickerCount(album) {
 export function findAlbum(id) {
   return getAlbums().find((album) => album.id === id) || null;
 }
+
+function requestResult(request) {
+  return new Promise((resolve, reject) => {
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error || new Error('IndexedDB request failed'));
+  });
+}
+
+function openStickerDatabase() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    request.onupgradeneeded = () => request.result.createObjectStore(STORE_NAME, { keyPath: 'key' });
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error || new Error('Could not open IndexedDB'));
+    request.onblocked = () => reject(new Error('Sticker database upgrade is blocked'));
+  });
+}
+
+function persistRecords(albums, recent) {
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(STORE_NAME, 'readwrite');
+    const store = transaction.objectStore(STORE_NAME);
+    store.put({ key: ALBUM_KEY, value: albums });
+    store.put({ key: RECENT_KEY, value: recent });
+    transaction.oncomplete = () => { storageError = null; resolve(); };
+    transaction.onerror = () => reject(transaction.error || new Error('Could not save sticker data'));
+    transaction.onabort = () => reject(transaction.error || new Error('Sticker data save was cancelled'));
+  });
+}
+
+function readLegacy(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+export async function initializeStickerStorage() {
+  if (!('indexedDB' in window)) {
+    storageError = new Error('Trình duyệt không hỗ trợ IndexedDB.');
+    albumsCache = (readLegacy(ALBUM_KEY, []) || []).map(normalizeAlbum).filter(Boolean);
+    recentCache = readLegacy(RECENT_KEY, []);
+    return;
+  }
+  try {
+    database = await openStickerDatabase();
+    const transaction = database.transaction(STORE_NAME, 'readonly');
+    const store = transaction.objectStore(STORE_NAME);
+    const [albumRecord, recentRecord] = await Promise.all([
+      requestResult(store.get(ALBUM_KEY)),
+      requestResult(store.get(RECENT_KEY)),
+    ]);
+    const legacyAlbums = readLegacy(ALBUM_KEY, []);
+    const legacyRecent = readLegacy(RECENT_KEY, []);
+    const storedAlbums = albumRecord ? albumRecord.value : legacyAlbums;
+    const storedRecent = recentRecord ? recentRecord.value : legacyRecent;
+    albumsCache = (Array.isArray(storedAlbums) ? storedAlbums : []).map(normalizeAlbum).filter(Boolean);
+    recentCache = (Array.isArray(storedRecent) ? storedRecent : [])
+      .map((item) => (typeof item === 'string' ? { url: item, base64: null } : item))
+      .map(normalizeStickerImage).filter(Boolean).slice(0, MAX_RECENT);
+    if (!albumRecord || !recentRecord) await persistRecords(albumsCache, recentCache);
+    localStorage.removeItem(ALBUM_KEY);
+    localStorage.removeItem(RECENT_KEY);
+  } catch (error) {
+    storageError = error;
+    albumsCache = (readLegacy(ALBUM_KEY, []) || []).map(normalizeAlbum).filter(Boolean);
+    recentCache = readLegacy(RECENT_KEY, []);
+    console.error('Could not initialize sticker IndexedDB', error);
+  }
+}
+
+export async function flushStickerStorage() {
+  while (writing || pendingSnapshot) {
+    if (!writing) schedulePersist();
+    await writeQueue;
+  }
+  if (storageError) throw storageError;
+}
+
+await initializeStickerStorage();

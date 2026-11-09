@@ -6,8 +6,9 @@
 
 import {
   getAlbums, getRecentStickers, addRecentSticker, removeRecentSticker, clearRecentStickers,
-  albumToStickerCount,
+  albumToStickerCount, flushStickerStorage, updateAlbum,
 } from '../lib/stickers.js';
+import { uploadImageFile } from '../lib/pikUpload.js';
 
 const IMG_SIZE = 80;
 export const STICKER_BBCODE = (url) => `[IMG size="${IMG_SIZE}x${IMG_SIZE}"]${url}[/IMG]`;
@@ -64,8 +65,35 @@ export function renderStickerPicker(panel, insert) {
 
   let activeKey = null;
 
-  const pick = (img) => {
+  const pick = async (img) => {
+    if (/^data:image\//i.test(img.url || '')) {
+      status.textContent = 'Đang tải sticker lên pik.vn…';
+      try {
+        const blob = await (await fetch(img.url)).blob();
+        const extension = blob.type.split('/')[1]?.replace('jpeg', 'jpg') || 'png';
+        const uploaded = await uploadImageFile(new File([blob], `sticker.${extension}`, { type: blob.type }));
+        const oldUrl = img.url;
+        img.url = uploaded.url;
+        img.deleteUrl = uploaded.deleteUrl || '';
+        for (const album of getAlbums()) {
+          const index = album.images.findIndex((image) => image.url === oldUrl);
+          if (index < 0) continue;
+          const images = [...album.images];
+          images[index] = { ...images[index], url: img.url, deleteUrl: img.deleteUrl };
+          updateAlbum(album.id, { images });
+          break;
+        }
+      } catch (error) {
+        status.textContent = `Tải sticker lên pik.vn thất bại: ${error.message}`;
+        return;
+      }
+    }
     addRecentSticker(img.url, img.base64 || null);
+    try {
+      await flushStickerStorage();
+    } catch (error) {
+      status.textContent = `Không lưu được sticker gần đây: ${error.message}`;
+    }
     insert(STICKER_BBCODE(img.url));
     status.textContent = 'Đã chèn sticker.';
     // Refresh the recents tab so the picked sticker moves to the front.
@@ -86,8 +114,9 @@ export function renderStickerPicker(panel, insert) {
         grid.append(
           stickerButton(img, {
             onPick: pick,
-            onRemove: (target) => {
+            onRemove: async (target) => {
               removeRecentSticker(target.url);
+              await flushStickerStorage();
               render('recent');
               renderTabs();
             },
@@ -101,9 +130,10 @@ export function renderStickerPicker(panel, insert) {
       clear.textContent = '🗑️';
       clear.title = 'Xoá hết gần đây';
       clear.setAttribute('aria-label', 'Xoá hết sticker gần đây');
-      clear.addEventListener('click', () => {
+      clear.addEventListener('click', async () => {
         if (!window.confirm('Bạn có chắc muốn xóa tất cả sticker gần đây?')) return;
         clearRecentStickers();
+        await flushStickerStorage();
         render('recent');
         renderTabs();
       });

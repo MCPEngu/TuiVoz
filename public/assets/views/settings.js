@@ -17,7 +17,7 @@ import {
 } from '../lib/settings.js';
 import {
   getAlbums, addAlbum, renameAlbum, removeAlbums, moveAlbum, setAlbumImages,
-  getRecentStickers, addRecentSticker, clearRecentStickers,
+  getRecentStickers, addRecentSticker, clearRecentStickers, flushStickerStorage,
   imageFileToBase64, MAX_NAME, MAX_RECENT,
 } from '../lib/stickers.js';
 import { importImgurAlbum } from '../lib/imgurImport.js';
@@ -344,7 +344,7 @@ function settingsHtml(active = settingsTabFromHash()) {
 
 // Writes an imported JSON payload into storage and reports what changed.
 // Shared by the sticker import panel and the backup/restore section.
-function applyImported(result) {
+async function applyImported(result) {
   const parts = [];
   if (result.albums) {
     if (result.addOnly) {
@@ -373,6 +373,7 @@ function applyImported(result) {
       parts.push(`${getRecentStickers().length} gần đây`);
     }
   }
+  await flushStickerStorage();
   renderStickerExtras();
   return parts;
 }
@@ -410,9 +411,21 @@ function wireStickerSettings() {
     form.hidden = !show;
     if (show) form.querySelector('input').focus();
   };
-  document.getElementById('sticker-add-imgur').addEventListener('click', () => { toggle(localForm, false); toggle(importForm, importForm.hidden); });
-  document.getElementById('sticker-add-local').addEventListener('click', () => { toggle(importForm, false); toggle(localForm, localForm.hidden); });
-  document.getElementById('sticker-import-json').addEventListener('click', () => { toggle(localForm, false); toggle(importForm, importForm.hidden); });
+  document.getElementById('sticker-add-imgur').addEventListener('click', () => {
+    toggle(localForm, false);
+    toggle(importForm, false);
+    toggle(imgurForm, imgurForm.hidden);
+  });
+  document.getElementById('sticker-add-local').addEventListener('click', () => {
+    toggle(imgurForm, false);
+    toggle(importForm, false);
+    toggle(localForm, localForm.hidden);
+  });
+  document.getElementById('sticker-import-json').addEventListener('click', () => {
+    toggle(imgurForm, false);
+    toggle(localForm, false);
+    toggle(importForm, importForm.hidden);
+  });
   document.getElementById('sticker-imgur-cancel').addEventListener('click', () => { imgurForm.reset(); toggle(imgurForm, false); });
   document.getElementById('sticker-local-cancel').addEventListener('click', () => { localForm.reset(); toggle(localForm, false); });
   document.getElementById('sticker-import-cancel').addEventListener('click', () => { importForm.reset(); toggle(importForm, false); });
@@ -445,6 +458,7 @@ function wireStickerSettings() {
         setStatus(imgurError, `❌ ${saved.error}`, true);
         return;
       }
+      await flushStickerStorage();
       setStatus(imgurProgress, `✅ Đã lưu ${result.album.images.length} hình ảnh${result.errors ? ` (${result.errors} lỗi)` : ''}.`);
       imgurForm.reset();
       rerenderExtras();
@@ -486,6 +500,15 @@ function wireStickerSettings() {
       setStatus(localError, `❌ ${saved.error}`, true);
       setStatus(localProgress, '');
     } else {
+      try {
+        await flushStickerStorage();
+      } catch (error) {
+        setStatus(localError, `❌ ${error.message}`, true);
+        setStatus(localProgress, '');
+        submit.disabled = false;
+        submit.textContent = 'Tạo album';
+        return;
+      }
       setStatus(localProgress, `✅ Đã lưu ${images.length} hình ảnh${failed ? ` (${failed} lỗi)` : ''}.`);
       localForm.reset();
       rerenderExtras();
@@ -502,11 +525,11 @@ function wireStickerSettings() {
   const importFiles = document.getElementById('sticker-import-files');
   const importText = document.getElementById('sticker-import-text');
 
-  const importOne = (text, label) => {
+  const importOne = async (text, label) => {
     const result = importSettingsJson(text);
     if (!result.ok) return { ok: false, error: `${label}: ${result.error}` };
     if (!result.albums) return { ok: false, error: `${label}: tệp không có mảng "albums".` };
-    const applied = applyImported(result);
+    const applied = await applyImported(result);
     return { ok: true, applied };
   };
 
@@ -519,7 +542,7 @@ function wireStickerSettings() {
       for (let i = 0; i < files.length; i += 1) {
         setStatus(importProgress, `📥 ${i + 1}/${files.length}: ${files[i].name}`);
         try {
-          const outcome = importOne(await files[i].text(), files[i].name);
+          const outcome = await importOne(await files[i].text(), files[i].name);
           if (outcome.ok) applied.push(...outcome.applied);
           else { failed += 1; setStatus(importError, `❌ ${outcome.error}`, true); }
         } catch (err) {
@@ -528,7 +551,7 @@ function wireStickerSettings() {
         }
       }
     } else if (importText.value.trim()) {
-      const outcome = importOne(importText.value, 'JSON dán');
+      const outcome = await importOne(importText.value, 'JSON dán');
       if (outcome.ok) applied.push(...outcome.applied);
       else { failed += 1; setStatus(importError, `❌ ${outcome.error}`, true); }
     } else {
@@ -546,7 +569,7 @@ function wireStickerSettings() {
   };
   document.getElementById('sticker-import-submit').addEventListener('click', runImport);
   importFiles.addEventListener('change', () => setStatus(importError, ''));
-  albumList.addEventListener('click', (event) => {
+  albumList.addEventListener('click', async (event) => {
     const renameBtn = event.target.closest('[data-rename]');
     if (renameBtn) {
       openAlbumEditor(renameBtn.dataset.rename, rerenderExtras);
@@ -589,12 +612,17 @@ function wireStickerSettings() {
         : '';
       if (!window.confirm(`Xoá album "${album.name}"?${extra}`)) return;
       removeAlbums([album.id]);
-      rerenderExtras();
-      toast('Đã xoá album');
+      try {
+        await flushStickerStorage();
+        rerenderExtras();
+        toast('Đã xoá album');
+      } catch (error) {
+        toast(`Không lưu được thay đổi: ${error.message}`, true);
+      }
     }
   });
 
-  document.getElementById('sticker-delete-selected').addEventListener('click', () => {
+  document.getElementById('sticker-delete-selected').addEventListener('click', async () => {
     const ids = [...albumList.querySelectorAll('.album-select:checked')].map((box) => box.dataset.id);
     if (!ids.length) return toast('Chọn album cần xoá trước.', true);
     const albums = getAlbums();
@@ -603,17 +631,23 @@ function wireStickerSettings() {
     const warning = pikvn ? `\n\n${pikvn} album pikvn: ảnh trên máy chủ vẫn còn, chỉ xoá dữ liệu album.` : '';
     if (!window.confirm(`Xoá ${ids.length} album? Không thể hoàn tác.${warning}`)) return;
     removeAlbums(ids);
-    rerenderExtras();
-    toast(`Đã xoá ${ids.length} album`);
+    try {
+      await flushStickerStorage();
+      rerenderExtras();
+      toast(`Đã xoá ${ids.length} album`);
+    } catch (error) {
+      toast(`Không lưu được thay đổi: ${error.message}`, true);
+    }
   });
 
-  albumList.addEventListener('click', (event) => {
+  albumList.addEventListener('click', async (event) => {
     const button = event.target.closest('[data-move-album]');
     if (!button) return;
     const row = button.closest('.sticker-album-row');
     const rows = [...albumList.querySelectorAll('.sticker-album-row')];
     const index = rows.indexOf(row);
     moveAlbum(row.dataset.albumId, index + (button.dataset.moveAlbum === 'up' ? -1 : 1));
+    await flushStickerStorage();
     rerenderExtras();
   });
 
@@ -638,7 +672,7 @@ function wireStickerSettings() {
     const rect = row.getBoundingClientRect();
     row.classList.add(event.clientY < rect.top + rect.height / 2 ? 'is-drop-before' : 'is-drop-after');
   });
-  albumList.addEventListener('drop', (event) => {
+  albumList.addEventListener('drop', async (event) => {
     if (!draggedId) return;
     event.preventDefault();
     const row = event.target.closest('.sticker-album-row');
@@ -651,12 +685,14 @@ function wireStickerSettings() {
     if (fromIndex < targetIndex) targetIndex -= 1;
     moveAlbum(draggedId, targetIndex);
     draggedId = null;
+    await flushStickerStorage();
     rerenderExtras();
   });
 
-  document.getElementById('sticker-recent-clear').addEventListener('click', () => {
+  document.getElementById('sticker-recent-clear').addEventListener('click', async () => {
     if (!window.confirm('Xoá toàn bộ sticker gần đây?')) return;
     clearRecentStickers();
+    await flushStickerStorage();
     rerenderExtras();
     toast('Đã xoá sticker gần đây');
   });
@@ -779,7 +815,7 @@ function openAlbumEditor(albumId, onChange) {
   nameInput.select();
 
   root.querySelector('[data-cancel]').addEventListener('click', close);
-  root.querySelector('[data-save]').addEventListener('click', () => {
+  root.querySelector('[data-save]').addEventListener('click', async () => {
     const name = nameInput.value.replace(/\s+/g, ' ').trim();
     if (!name) return showError('Tên album không được để trống.');
     if (!images.length) return showError('Album cần ít nhất một hình ảnh. Dùng nút thùng rác ở danh sách để xoá cả album.');
@@ -791,6 +827,11 @@ function openAlbumEditor(albumId, onChange) {
     }
     const result = setAlbumImages(album.id, images);
     if (!result.ok) return showError(result.error);
+    try {
+      await flushStickerStorage();
+    } catch (error) {
+      return showError(`Không lưu được album: ${error.message}`);
+    }
     close();
     onChange();
     toast('Đã lưu album');
@@ -986,23 +1027,24 @@ export function viewSettings() {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
     toast('Đã tải tệp thiết lập');
   });
-  document.getElementById('settings-import').addEventListener('click', () => {
+  document.getElementById('settings-import').addEventListener('click', async () => {
     const result = importSettingsJson(jsonBox.value);
     if (!result.ok) return showJsonError(result.error);
     showJsonError('');
     resetForm();
     rerenderList();
-    const parts = applyImported(result);
+    const parts = await applyImported(result);
     rerenderList();
     const shortcutPart = result.count ? [`${result.count} phím tắt`] : [];
     const summary = [...shortcutPart, ...parts];
     toast(summary.length ? `Đã phục hồi: ${summary.join(' · ')}` : 'Không có dữ liệu hợp lệ để phục hồi');
   });
-  document.getElementById('settings-reset').addEventListener('click', () => {
+  document.getElementById('settings-reset').addEventListener('click', async () => {
     if (!window.confirm('Xoá toàn bộ thiết lập (gồm cả album sticker) trên trình duyệt này?')) return;
     importSettingsJson('{"navShortcuts":[]}');
     for (const album of getAlbums()) removeAlbums([album.id]);
     clearRecentStickers();
+    await flushStickerStorage();
     jsonBox.value = buildBackup();
     resetForm();
     rerenderList();
