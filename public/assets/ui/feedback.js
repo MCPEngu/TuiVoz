@@ -14,7 +14,25 @@ export function toast(message, isError = false) {
 }
 
 export function loading() {
-  app.innerHTML = '<div class="loading"><span class="spinner"></span> Đang tải…</div>';
+  app.innerHTML = `
+    <div class="loading-skeleton" aria-label="Đang tải nội dung" role="status">
+      <span class="skeleton-line skeleton-title"></span>
+      <span class="skeleton-line skeleton-meta"></span>
+      <div class="skeleton-card">
+        <span class="skeleton-line skeleton-wide"></span>
+        <span class="skeleton-line skeleton-medium"></span>
+        <span class="skeleton-line skeleton-short"></span>
+      </div>
+      <div class="skeleton-card">
+        <span class="skeleton-line skeleton-wide"></span>
+        <span class="skeleton-line skeleton-medium"></span>
+        <span class="skeleton-line skeleton-short"></span>
+      </div>
+      <div class="skeleton-card">
+        <span class="skeleton-line skeleton-wide"></span>
+        <span class="skeleton-line skeleton-medium"></span>
+      </div>
+    </div>`;
 }
 
 export function errorBox(err) {
