@@ -13,6 +13,21 @@
 @media (max-width: 650px) {
   .structItem-cell--iconEnd { display: none; }
   .structItem-cell--latest { display: none; }
+  .structItem-cell--icon { width: 44px; }
+  .structItem-cell--meta { display: none; }
+  .structItem-cell--main { padding-left: 6px; }
+  .structItem-title { overflow-wrap: anywhere; }
+  .breadcrumb-trail {
+    min-width: 0;
+    font-size: calc(13px * var(--ui-scale));
+    line-height: 1.5;
+  }
+  .breadcrumb-trail > a:first-child,
+  .breadcrumb-trail > a:first-child + .sep,
+  .breadcrumb-trail > span:nth-last-child(2),
+  .breadcrumb-trail > span:last-child { display: none; }
+  .p-breadcrumbs { align-items: flex-start; }
+  .p-breadcrumbs .button { flex: 0 0 auto; }
 }
 /* Full-bleed content, the way voz.vn does it: at this width the page gutter is dropped and
    every block runs edge to edge, so no page background shows as a stripe down either side.

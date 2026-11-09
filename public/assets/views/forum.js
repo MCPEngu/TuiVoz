@@ -2,7 +2,7 @@
 
 import { app, state } from '../core/dom.js';
 import { esc, num } from '../core/utils.js';
-import { forumPath, searchForumPath, withPage } from '../core/paths.js';
+import { forumPath, searchForumPath, slugify, withPage } from '../core/paths.js';
 import { api } from '../api.js';
 import { setActiveNav, setBreadcrumbs } from '../ui/chrome.js';
 import { setTitle, setBrandTitle } from '../ui/title.js';
@@ -39,7 +39,10 @@ export async function viewForum(nodeId, page) {
     ]);
     if (!state.nodes) state.nodes = nodesRes;
     const forum = forumRes.forum;
-    const crumbs = (forum.breadcrumbs || []).map((b) => ({ label: b.title }));
+    const crumbs = (forum.breadcrumbs || []).map((b) => ({
+      label: b.title,
+      ...(b.node_id ? { href: `/#${slugify(b.title)}.${b.node_id}` } : {}),
+    }));
     setBreadcrumbs([{ label: 'Diễn đàn', href: '/' }, ...crumbs, { label: forum.title }], {
       href: `${forumPath(forum)}post-thread`, label: 'Tạo chủ đề mới',
     });
