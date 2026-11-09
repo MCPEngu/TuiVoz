@@ -25,6 +25,8 @@
 .node-main { flex: 1 1 auto; min-width: 0; }
 .node-title { font-size: calc(17px * var(--ui-scale)); font-weight: var(--fw-bold); }
 .node-title a { color: var(--link); }
+:root[data-theme="dark"] .node-title a { color: var(--text); }
+.node-title a:hover { color: var(--link-hover); }
 .node-desc { font-size: calc(13px * var(--ui-scale)); color: var(--dimmed); margin-top: 2px; }
 .node-stats {
   flex: 0 0 auto;
@@ -67,6 +69,9 @@
 .structItem-cell--iconEnd .structItem-iconContainer { padding-top: 6px; }
 .structItem-cell--meta { width: 135px; }
 .structItem-cell--latest { width: 190px; text-align: right; }
+.structItem-cell--latest a { color: var(--link); }
+:root[data-theme="dark"] .structItem-cell--latest a { color: var(--text); }
+.structItem-cell--latest a:hover { color: var(--link-hover); }
 .structItem-iconContainer { position: relative; }
 .structItem-iconContainer .avatar { display: block; width: 36px; height: 36px; }
 .structItem-iconContainer .avatar--xxs { width: 24px; height: 24px; }
@@ -74,12 +79,14 @@
 .structItem-title { font-size: calc(16px * var(--ui-scale)); font-weight: 400; margin: 0; padding: 0; line-height: 1.35; }
 .structItem-title .label { font-weight: 400; }
 .structItem-title a { color: var(--link); }
+:root[data-theme="dark"] .structItem-title a { color: var(--text); }
 .structItem-title a:hover { color: var(--link-hover); }
 /* Unread threads are bold on voz.vn; reading the thread clears it (API is_unread). */
 .structItem--thread.is-unread .structItem-title,
 .structItem--thread.is-unread .structItem-title a { font-weight: var(--fw-bold); }
 .structItem--thread.is-unread .structItem-title .label { font-weight: 400; }
-.structItemContainer-group--sticky .structItem-title a { color: var(--link-hover); }
+.structItemContainer-group--sticky .structItem-title a { color: #ff6600; }
+:root[data-theme="dark"] .structItemContainer-group--sticky .structItem-title a { color: #ff8a3d; }
 
 .structItem-minor { font-size: calc(12px * var(--ui-scale)); color: var(--dimmed); }
 .structItem-minor a { color: inherit; text-decoration: none; }
@@ -187,6 +194,9 @@
   font-weight: var(--fw-bold);
   cursor: default;
 }
+:root[data-theme="dark"] .pageNav a,
+:root[data-theme="dark"] .pageNav-jumpBtn,
+:root[data-theme="dark"] .pageNav-scrollBtn { color: var(--text); }
 .pageNav a:hover,
 .pageNav-jumpBtn:hover { background: var(--surface-accent-hover); color: var(--link-hover); }
 .pageNav-jump { font-weight: var(--fw-bold); }

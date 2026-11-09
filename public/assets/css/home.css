@@ -13,7 +13,10 @@
 .node-extra { flex: 0 0 280px; min-width: 0; display: flex; align-items: center; gap: 10px; font-size: calc(13px * var(--ui-scale)); padding-left: 10px; }
 .node-extra .avatar { width: 36px; height: 36px; flex: 0 0 36px; }
 .node-latest { min-width: 0; }
-.node-latest-title { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: calc(14px * var(--ui-scale)); }
+.node-latest-title { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: calc(14px * var(--ui-scale)); color: var(--link); }
+:root[data-theme="dark"] .node-latest-title { color: var(--text); }
+.node-latest-title a { color: inherit; }
+.node-latest-title a:hover { color: var(--link-hover); }
 .node-latest .u-dimmed a { color: inherit; }
 .node-list { width: 100%; }
 @media (max-width: 1000px) { .node-stats { display: none; } }

@@ -153,7 +153,7 @@ export async function viewThread(threadId, page, focusPost) {
             canReply
               ? `<form id="reply-form">
                    ${editorHtml('reply-message', '', 'Nội dung trả lời (BBCode)…')}
-                   <button class="button button--primary" type="submit" style="margin-top:10px">Gửi trả lời</button>
+                   <div class="reply-submit-row"><button class="button button--primary" type="submit">Gửi trả lời</button></div>
                  </form>`
               : `<p class="u-dimmed">Bạn không thể trả lời chủ đề này${state.loggedIn ? '' : ' — <a href="/login">đăng nhập</a>'}.</p>`
           }
