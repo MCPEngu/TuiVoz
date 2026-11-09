@@ -1,23 +1,25 @@
 /* Loading / empty / error states, toast, modal. */
 
-.loading-skeleton { display: grid; gap: 12px; padding: 16px 0; }
-.skeleton-line {
-  display: block;
-  height: 14px;
-  border-radius: 7px;
-  background: linear-gradient(90deg, var(--chip-bg) 25%, var(--border) 50%, var(--chip-bg) 75%);
-  background-size: 200% 100%;
-  animation: skeleton-shimmer 1.35s ease-in-out infinite;
+.loading { padding: 26px 12px; text-align: center; color: var(--dimmed); }
+#app.is-loading::before {
+  content: "";
+  position: fixed;
+  z-index: 1000;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: #d32f2f;
+  transform-origin: left;
+  animation: page-loading 1.15s ease-in-out infinite;
 }
-.skeleton-title { width: 58%; height: 24px; margin-bottom: 2px; }
-.skeleton-meta { width: 34%; height: 11px; }
-.skeleton-card { display: grid; gap: 10px; padding: 16px; border: 1px solid var(--border); border-radius: var(--radius); }
-.skeleton-wide { width: 92%; }
-.skeleton-medium { width: 70%; }
-.skeleton-short { width: 46%; }
-@keyframes skeleton-shimmer { to { background-position: -200% 0; } }
+@keyframes page-loading {
+  0% { transform: scaleX(0); opacity: 1; }
+  75% { transform: scaleX(.82); opacity: 1; }
+  100% { transform: scaleX(1); opacity: 0; }
+}
 @media (prefers-reduced-motion: reduce) {
-  .skeleton-line { animation: none; }
+  #app.is-loading::before { animation: none; transform: scaleX(.35); }
 }
 .empty { padding: 26px 12px; text-align: center; color: var(--dimmed); }
 .error-box {

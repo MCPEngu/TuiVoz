@@ -6,7 +6,7 @@ import { idFromSegment, threadPath, withPage } from './paths.js';
 import { api } from '../api.js';
 import { navigate } from './nav.js';
 import { setRouteHandler } from './nav.js';
-import { errorBox } from '../ui/feedback.js';
+import { errorBox, finishLoading } from '../ui/feedback.js';
 import { resolveUnread, threadLastPage } from '../lib/unread.js';
 import { viewHome, viewForum, viewSearchForum, viewNewThreads } from '../views/forum.js';
 import { viewThread } from '../views/thread.js';
@@ -107,6 +107,7 @@ export async function route() {
     setTitle('Oops! We ran into some problems.');
     app.innerHTML = errorBox(err);
   } finally {
+    finishLoading();
     refreshUnreadCounts();
   }
 }
