@@ -314,10 +314,12 @@
   .pageNav-scrollBtn { min-width: 26px; min-height: 26px; padding: 4px 6px; font-size: calc(13px * var(--ui-scale)); }
   .pageNav-main { gap: 1px; }
 }
-/* Very narrow: keep only the current page and its neighbours. */
+/* Very narrow: drop the pages two steps out, but always keep the first page, the last page,
+   the current page's immediate neighbours and the "…" jump cell. Hiding by position
+   (nth-child) used to leave only the current number, because the "…" cell shifted every
+   index and the last page was never one of the two kept cells. */
 @media (max-width: 400px) {
-  .pageNav-page:not(.is-current):not(:nth-child(2)):not(:nth-last-child(2)) { display: none; }
-  .pageNav-skip { display: none; }
+  .pageNav-page--far { display: none; }
 }
 
 .pageNav a.pageNav-author {

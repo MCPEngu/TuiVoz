@@ -19,10 +19,18 @@ export function pagination(p, makeHref, extraHtml = '', { scrollArm = true } = {
     if (prev && n - prev > 1) {
       items += `<li class="pageNav-skip"><button type="button" class="pageNav-jumpBtn" data-last="${last}" title="Đi tới trang">…</button></li>`;
     }
+    // `--edge` marks the first and last page, `--far` the pages two steps out. Narrow
+    // screens drop `--far` so the first page, the last page and the current page's
+    // neighbours all stay reachable instead of collapsing to the current number alone.
+    const classes = ['pageNav-page'];
+    if (n === current) classes.push('is-current');
+    if (n === 1 || n === last) classes.push('pageNav-page--edge');
+    else if (Math.abs(n - current) > 1) classes.push('pageNav-page--far');
+    const cls = classes.join(' ');
     items +=
       n === current
-        ? `<li class="pageNav-page is-current"><span class="current">${n}</span></li>`
-        : `<li class="pageNav-page"><a href="${esc(makeHref(n))}">${n}</a></li>`;
+        ? `<li class="${cls}"><span class="current">${n}</span></li>`
+        : `<li class="${cls}"><a href="${esc(makeHref(n))}">${n}</a></li>`;
     prev = n;
   }
 
