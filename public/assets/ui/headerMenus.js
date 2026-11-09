@@ -4,6 +4,7 @@ import { dmPath, userPath } from '../core/paths.js';
 import { navigate } from '../core/nav.js';
 import { api } from '../api.js';
 import { avatarMarkup } from '../lib/avatar.js';
+import { alertTextMarkup } from './alertMarkup.js';
 import { refreshUnreadCounts, wireUnreadCounts } from './unreadCounts.js';
 
 export function closeHeaderMenus() {
@@ -41,12 +42,17 @@ export function wireHeaderMenus() {
       if (!body.isConnected) return;
       const items = (kind === 'dm' ? res.conversations : res.alerts) || [];
       const visibleItems = items.slice(0, 6);
-      body.innerHTML = visibleItems.map((item) => {
+      body.innerHTML = (await Promise.all(visibleItems.map(async (item) => {
         const user = item.Starter || item.User || { user_id: item.user_id, username: item.username };
-        const title = kind === 'dm' ? `<a href="${dmPath(item)}">${esc(item.title)}</a>` : esc(item.alert_text || item.content_title);
+        const alertHref = item.content_type === 'post' && item.content_id
+          ? `/p/${Number(item.content_id)}/`
+          : item.alert_url ? item.alert_url.replace(/^https?:\/\/voz\.vn/, '') : userPath(user);
+        const title = kind === 'dm'
+          ? `<a href="${dmPath(item)}">${esc(item.title)}</a>`
+          : `<a href="${alertHref}">${await alertTextMarkup(item)}</a>`;
         const unread = kind === 'dm' ? item.is_unread : !item.view_date;
         return `<div class="menu-preview${unread ? ' is-unread' : ''}"><a class="avatar" href="${userPath(user)}">${avatarMarkup(user, 's')}</a><div>${title}<div class="u-dimmed u-smaller">${esc(user.username || '')} · ${timeAgo(item.last_message_date || item.event_date)}</div></div></div>`;
-      }).join('') || '<div class="menu-empty">Chưa có mục nào.</div>';
+      }))).join('') || '<div class="menu-empty">Chưa có mục nào.</div>';
       try {
         if (kind === 'alerts') {
           await api.markAlertsViewed();

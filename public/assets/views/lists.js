@@ -11,6 +11,7 @@ import { pagination, wirePageJump } from '../ui/pagination.js';
 import { requireLogin } from '../ui/session.js';
 import { threadRow, postRow } from '../ui/threadRow.js';
 import { avatarMarkup } from '../lib/avatar.js';
+import { alertTextMarkup } from '../ui/alertMarkup.js';
 
 export async function viewAlerts(page) {
   setActiveNav('alerts');
@@ -21,24 +22,21 @@ export async function viewAlerts(page) {
   try {
     const res = await api.alerts(page);
     const alerts = res.alerts || [];
+    const alertRows = await Promise.all(alerts.map(async (a) => `
+              <div class="alert-row${a.read_date ? '' : ' is-unread'}">
+                <a href="${userPath(a.User || { user_id: a.user_id, username: a.username })}" class="avatar">${avatarMarkup(a.User, 's')}</a>
+                <div class="alert-main">
+                  <a href="${a.content_type === 'post' && a.content_id ? `/p/${Number(a.content_id)}/` : a.alert_url ? a.alert_url.replace(/^https?:\/\/voz\.vn/, '') : userPath(a.User || { user_id: a.user_id, username: a.username })}">${await alertTextMarkup(a)}</a>
+                  ${a.content_title ? `<div class="u-smaller u-dimmed">${esc(a.content_title)}</div>` : ''}
+                  <div class="alert-time">${timeAgo(a.event_date)}</div>
+                </div>
+              </div>`));
     app.innerHTML = `
       <div class="block">
         <div class="block-header">Thông báo<span class="block-header-extra">${num(res.pagination && res.pagination.total)}</span></div>
         ${
           alerts.length
-            ? `<div>${alerts
-                .map(
-                  (a) => `
-              <div class="alert-row${a.read_date ? '' : ' is-unread'}">
-                <a href="${userPath(a.User || { user_id: a.user_id, username: a.username })}" class="avatar">${avatarMarkup(a.User, 's')}</a>
-                <div class="alert-main">
-                  <div>${esc(a.alert_text)}</div>
-                  ${a.content_title ? `<div class="u-smaller u-dimmed">${esc(a.content_title)}</div>` : ''}
-                  <div class="alert-time">${timeAgo(a.event_date)}</div>
-                </div>
-              </div>`
-                )
-                .join('')}</div>`
+            ? `<div>${alertRows.join('')}</div>`
             : '<div class="empty">Không có thông báo.</div>'
         }
         ${pagination(res.pagination, (p) => withPage('/alerts', p))}
