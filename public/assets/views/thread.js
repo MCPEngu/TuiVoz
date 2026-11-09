@@ -121,7 +121,7 @@ export async function viewThread(threadId, page, focusPost) {
     app.innerHTML = `
       <div class="block block--messages">
         <div class="block-header">
-          <span class="block-header-title" id="thread-title" tabindex="0" aria-label="${esc(thread.title)} — Trên mobile: giữ 1,5 giây hoặc nhấn Enter để bật/tắt theo dõi">
+          <span class="block-header-title" id="thread-title" tabindex="0" aria-label="${esc(thread.title)} — Trên mobile: giữ 1,5 giây hoặc nhấn Enter để bật/tắt theo dõi" style="user-select: text; -webkit-user-select: text; -webkit-touch-callout: default;">
             ${prefixLabel(thread)}${esc(thread.title)}
           </span>
           <span class="block-header-extra">${num(thread.reply_count, 'thread')} trả lời · ${num(thread.view_count, 'thread')} xem</span>
