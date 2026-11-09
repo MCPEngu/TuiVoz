@@ -57,7 +57,7 @@ export function postHtml(post, thread, page) {
               <div class="message-userContent">
                 <article class="message-body bbWrapper">${sanitizeHtml(post.message_parsed || esc(post.message), post.message)}</article>
               </div>
-              ${user.signature ? `<div class="message-signature bbWrapper">${sanitizeHtml(signatureHtml(user.signature))}</div>` : ''}
+              ${user.signature ? `<div class="message-signature bbWrapper is-collapsed">${sanitizeHtml(signatureHtml(user.signature))}</div><button type="button" class="signature-toggle" hidden aria-expanded="false">Xem thêm</button>` : ''}
               <footer class="message-footer">
                 <div class="message-actionBar actionBar">
                   <div class="actionBar-set actionBar-set--left">

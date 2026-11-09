@@ -63,6 +63,27 @@ function focusReplyEnd() {
   textarea.dispatchEvent(new Event('editor:focus-end'));
 }
 
+function wireSignatureToggles(root) {
+  if (!matchMedia('(max-width: 620px)').matches) return;
+  root.querySelectorAll('.message-signature').forEach((signature) => {
+    const button = signature.nextElementSibling;
+    if (!button?.matches('.signature-toggle') || signature.dataset.toggleReady) return;
+    signature.dataset.toggleReady = 'true';
+    if (signature.scrollHeight > signature.clientHeight + 1) button.hidden = false;
+  });
+  if (root !== app || root.dataset.signatureTogglesWired) return;
+  root.dataset.signatureTogglesWired = 'true';
+  root.addEventListener('click', (event) => {
+    const button = event.target.closest('.signature-toggle');
+    if (!button) return;
+    const signature = button.previousElementSibling;
+    const expanded = signature.classList.toggle('is-expanded');
+    signature.classList.toggle('is-collapsed', !expanded);
+    button.textContent = expanded ? 'Thu gọn' : 'Xem thêm';
+    button.setAttribute('aria-expanded', String(expanded));
+  });
+}
+
 export async function viewThread(threadId, page, focusPost) {
   setActiveNav('home');
   loading();
@@ -142,6 +163,7 @@ export async function viewThread(threadId, page, focusPost) {
     wireEditor(app);
     wireMemberTooltips(app, posts.map((post) => post.User));
     wireThreadActions(threadId, posts, thread, res.pagination ? res.pagination.current_page : 1);
+    wireSignatureToggles(app);
     wirePageJump((p) => withPage(threadPath(thread), p));
     wireScrollArm();
     hydrateReactionLists(app);
@@ -159,6 +181,7 @@ export async function viewThread(threadId, page, focusPost) {
         if (!list || !more.length) return 0;
         registerAttachments(more);
         list.insertAdjacentHTML('beforeend', more.map((post) => postHtml(post, thread, p)).join(''));
+        wireSignatureToggles(list);
         hydrateReactionLists(list);
         wireMemberTooltips(list, more.map((post) => post.User));
         for (const post of more) postIndex.set(post.post_id, post);
