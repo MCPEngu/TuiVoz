@@ -468,3 +468,33 @@
 .member-card-header[style*="background-image"] > * { position: relative; }
 .member-card-header[style*="background-image"] .member-card-name,
 .member-card-header[style*="background-image"] .u-dimmed { color: #fff; }
+
+/* Thread moderation menu — voz's "More options" structural menu, anchored under the header button. */
+.block-header { position: relative; }
+.block-header-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 8px;
+  z-index: 60;
+  min-width: 200px;
+  padding: 6px 0;
+  background: var(--content-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .28);
+}
+.block-header-menu[hidden] { display: none; }
+.block-header-menu .menu-content { display: flex; flex-direction: column; padding: 0; }
+.block-header-menu .menu-linkRow {
+  display: block;
+  padding: 7px 12px;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: calc(14px * var(--ui-scale));
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.block-header-menu .menu-linkRow:hover { background: var(--surface-tint); color: var(--link); }

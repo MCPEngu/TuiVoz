@@ -6,7 +6,8 @@ import { avatarMarkup } from '../lib/avatar.js';
 import { sanitizeHtml } from '../lib/bbcode.js';
 import { signatureHtml } from '../lib/signature.js';
 import { userBadges } from '../lib/userBadges.js';
-import { ICON_EDIT, ICON_DELETE, ICON_QUOTE, ICON_REPLY, ICON_REPORT, ICON_BOOKMARK } from '../core/icons.js';
+import { ICON_EDIT, ICON_DELETE, ICON_QUOTE, ICON_REPLY, ICON_REPORT, ICON_BOOKMARK, ICON_WARN } from '../core/icons.js';
+import { state } from '../core/dom.js';
 import { reactionBar, reactionSummary } from './reactions.js';
 
 // Conversation messages share the post layout; they differ in the permalink (no post number, no bookmark) and
@@ -85,6 +86,11 @@ export function postHtml(post, thread, page, kind = 'thread') {
   if (post.can_soft_delete) {
     ownerActions.push(`<a href="#" class="actionBar-action actionBar-action--icon actionBar-action--danger" data-delete="${post.post_id}"
       title="Xoá bài viết" aria-label="Xoá bài viết">${ICON_DELETE}</a>`);
+  }
+  // Warn is a moderator action: the me payload gates it, the post itself only carries author-side flags.
+  if (state.me?.can_warn && Number(post.user_id) !== Number(state.me.user_id)) {
+    ownerActions.push(`<a href="#" class="actionBar-action actionBar-action--icon" data-warn="${post.post_id}"
+      title="Cảnh cáo bài viết" aria-label="Cảnh cáo bài viết">${ICON_WARN}</a>`);
   }
 
   return `

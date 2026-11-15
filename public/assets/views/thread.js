@@ -26,6 +26,7 @@ import { mountInfiniteScroll } from '../ui/infiniteScroll.js';
 import { openPostNumberPopup } from '../ui/postNumberPopup.js';
 import { jumpToAnchor } from '../lib/jumpToAnchor.js';
 import { signalOpen, signalRead } from '../lib/signals.js';
+import { moderationButtonHtml, moderationMenuHtml, wireModeration, openWarnModal } from '../ui/threadModeration.js';
 
 // Posts currently on screen, extended as infinite scroll appends, so the delegated click handler can resolve a
 // post from any appended page.
@@ -162,12 +163,14 @@ export async function viewThread(threadId, page, focusPost) {
             ${prefixLabel(thread)}${esc(thread.title)}
           </span>
           <span class="block-header-extra">${num(thread.reply_count, 'thread')} trả lời · ${num(thread.view_count, 'thread')} xem</span>
+          ${moderationButtonHtml(thread)}
           <button type="button" class="block-header-icon${watching ? ' is-on' : ''}" id="watch-btn"
                   data-thread="${threadId}" data-watching="${watching ? '1' : '0'}"
                   title="${watching ? 'Bỏ theo dõi chủ đề' : 'Theo dõi chủ đề'}"
                   aria-label="${watching ? 'Bỏ theo dõi chủ đề' : 'Theo dõi chủ đề'}">
             ${watching ? ICON_EYE_ON : ICON_EYE_OFF}
           </button>
+          ${moderationMenuHtml(thread)}
         </div>
         <div class="block-outer">
           <div class="block-outer-main">
@@ -215,6 +218,7 @@ export async function viewThread(threadId, page, focusPost) {
     wireEditor(app);
     wireMemberTooltips(app, posts.map((post) => post.User));
     wireThreadActions(threadId, posts, thread, res.pagination ? res.pagination.current_page : 1);
+    wireModeration(thread, () => navigate(threadPath(thread), { replace: true }));
     wireSignatureToggles(app);
     wirePageJump((p) => withPage(threadPath(thread), p));
     wireScrollArm();
@@ -402,6 +406,13 @@ function wireThreadActions(threadId, posts, thread, page = 1) {
       event.preventDefault();
       if (!state.loggedIn) return navigate('/login');
       openReportModal(Number(reportLink.dataset.report));
+      return;
+    }
+
+    const warnLink = event.target.closest('[data-warn]');
+    if (warnLink) {
+      event.preventDefault();
+      openWarnModal(Number(warnLink.dataset.warn), () => reload(page, null));
     }
   };
 
