@@ -181,8 +181,8 @@
    content tokens. Chrome tokens stay frozen like the stock light theme. Placed after both stock
    palettes: equal specificity, later wins. */
 :root[data-theme-mode="catppuccin-latte"] {
-  --block-header-bg: #7c7f93;
-  --block-header-hover: #6c6f85;
+  --block-header-bg: #1e66f5;
+  --block-header-hover: #1a5ad6;
   --block-header-fg: #eff1f5;
   --link: #1e66f5;
   --link-hover: #fe640b;
@@ -201,8 +201,8 @@
   --surface-sunken: #e6e9ef;
   --surface-raised: #ccd0da;
   --surface-hover: #e6e9ef;
-  --surface-accent: #dce0e8;
-  --surface-accent-hover: #ccd0da;
+  --surface-accent: #dce7fd;
+  --surface-accent-hover: #c9dbfc;
   --surface-tint: #dce0e8;
   --surface-code: #e6e9ef;
   --surface-editor-panel: #e6e9ef;
@@ -238,9 +238,9 @@
   --header-bg: #11111b;
   --nav-bg: #11111b;
   --chrome-page-bg: #11111b;
-  --block-header-bg: #45475a;
-  --block-header-hover: #585b70;
-  --block-header-fg: #cdd6f4;
+  --block-header-bg: #89b4fa;
+  --block-header-hover: #74a8fc;
+  --block-header-fg: #11111b;
   --link: #89b4fa;
   --link-hover: #fab387;
   --accent-text: #fab387;
@@ -259,8 +259,8 @@
   --surface-sunken: #181825;
   --surface-raised: #45475a;
   --surface-hover: #313244;
-  --surface-accent: #313244;
-  --surface-accent-hover: #45475a;
+  --surface-accent: #2a3450;
+  --surface-accent-hover: #334062;
   --surface-tint: #313244;
   --surface-code: #181825;
   --surface-editor-panel: #181825;
