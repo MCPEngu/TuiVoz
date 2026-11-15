@@ -73,8 +73,11 @@
 :root[data-theme="dark"] .structItem-cell--latest a { color: var(--text); }
 .structItem-cell--latest a:hover { color: var(--link-hover); }
 .structItem-iconContainer { position: relative; }
+/* voz sizes thread-list avatars by column, not by the generic avatar--* scale: 36px at the start of the row and
+   24px for the latest-poster thumbnail. The .avatar.avatar--* pairs outrank `avatar.css`'s size classes. */
+.structItem-iconContainer .avatar.avatar--s,
 .structItem-iconContainer .avatar { display: block; width: 36px; height: 36px; }
-.structItem-iconContainer .avatar--xxs { width: 24px; height: 24px; }
+.structItem-iconContainer .avatar.avatar--xxs { width: 24px; height: 24px; }
 
 .structItem-title { font-size: calc(16px * var(--ui-scale)); font-weight: 400; margin: 0; padding: 0; line-height: 1.35; }
 .structItem-title .label { font-weight: 400; }
