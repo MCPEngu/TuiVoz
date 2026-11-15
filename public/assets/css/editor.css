@@ -13,8 +13,8 @@
 /* Border triangle plus an inner one in the content colour, so only the outer edge shows. */
 .message-userArrow { position: absolute; top: 20px; right: -1px; width: 0; height: 0; border-style: solid; border-width: 10px 10px 10px 0; border-color: transparent var(--border) transparent transparent; }
 .message-userArrow::after { content: ''; position: absolute; top: -9px; right: -10px; border-style: solid; border-width: 9px 9px 9px 0; border-color: transparent var(--content-bg) transparent transparent; }
-.formButtonGroup { display: flex; flex-wrap: wrap; margin-top: 10px; margin-bottom: -5px; }
-.formButtonGroup-primary { order: 2; margin-left: auto; margin-bottom: 5px; }
+.formButtonGroup { display: flex; flex-wrap: wrap; align-items: center; margin-top: 10px; margin-bottom: -5px; }
+.formButtonGroup-primary { order: 2; margin-left: auto; margin-bottom: 5px; display: flex; align-items: center; }
 .js-quickReply .button--primary { padding: 6px 11px; }
 .js-quickReply .button--primary svg { display: block; }
 
@@ -46,7 +46,7 @@
 .editor-option:focus-within { outline: 2px solid var(--link); outline-offset: -2px; }
 .rich-editor .editor-toolbar .editor-drafts button { width: auto; height: auto; padding: 7px 8px; font-size: calc(12px * var(--ui-scale)); }
 .editor-drafts { display: flex; gap: 6px; align-items: center; padding: 0 8px; }
-.editor-overflow .editor-hint { flex: 1 1 100%; margin: 0; padding: 0 0 6px; }
+
 .editor-visual, .rich-editor .editor-source { border: 0; border-radius: 0; min-height: 190px; max-height: 70vh; overflow: auto; padding: 10px 20px 20px; line-height: 1.5; width: 100%; font-size: calc(15px * var(--ui-scale)); outline-offset: -2px; background: transparent; }
 /* voz.vn's quick reply box is short by default and grows with what is typed. */
 .js-quickReply .editor-visual, .js-quickReply .rich-editor .editor-source { min-height: 100px; }
@@ -129,7 +129,6 @@
 .editor-upload-row.is-ok { color: var(--success-text-strong); }
 .editor-upload-row.is-error { color: var(--danger-text); }
 .editor-status:empty { display: none; }
-.editor-hint { margin: 0; padding: 5px 8px; color: var(--dimmed); font-size: calc(11px * var(--ui-scale)); line-height: 1.5; }
 .editor-preview { border-top: 1px solid var(--border); padding: 12px; min-height: 60px; overflow-wrap: anywhere; white-space: pre-wrap; }
 @media (max-width: 600px) {
   .rich-editor .editor-toolbar { padding: 2px 3px 0; flex-wrap: wrap; row-gap: 0; }
@@ -154,3 +153,46 @@
 .attach-row.is-error .attach-state { color: var(--error, #c33); }
 .attach-state [data-attach-remove] { border: 0; background: none; color: var(--dimmed); cursor: pointer; font-size: 16px; line-height: 1; padding: 2px 4px; }
 .attach-state [data-attach-remove]:hover { color: var(--text); }
+
+/* "Đính kèm tệp" — voz's paperclip button, same row as the submit button. */
+.editor-attach-button { order: 1; margin-right: 6px; margin-bottom: 5px; align-self: center; }
+.editor-attach-button svg { width: 1em; height: 1em; flex: 0 0 auto; }
+
+/* Image resize overlay — voz/Froala's .fr-image-resizer, themed with our tokens. */
+.image-resizer {
+  position: fixed;
+  z-index: 900;
+  pointer-events: none;
+  border: 1px dashed var(--link);
+  box-sizing: border-box;
+}
+.image-resizer-handle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: var(--link);
+  border: 1px solid var(--content-bg, #fff);
+  border-radius: 2px;
+  pointer-events: auto;
+  touch-action: none;
+}
+.image-resizer-handle--nw { top: -5px; left: -5px; cursor: nwse-resize; }
+.image-resizer-handle--ne { top: -5px; right: -5px; cursor: nesw-resize; }
+.image-resizer-handle--sw { bottom: -5px; left: -5px; cursor: nesw-resize; }
+.image-resizer-handle--se { bottom: -5px; right: -5px; cursor: nwse-resize; }
+.image-resizer-badge {
+  position: absolute;
+  right: -1px;
+  bottom: -22px;
+  padding: 1px 6px;
+  background: var(--link);
+  color: #0d2137;
+  border-radius: 3px;
+  font-size: calc(11px * var(--ui-scale));
+  line-height: 1.6;
+  white-space: nowrap;
+  pointer-events: auto;
+  cursor: pointer;
+}
+.editor-visual img[data-bb-tag], .editor-visual img[data-bb-attach-id] { cursor: pointer; }
+.editor-visual img.is-image-resizing { outline: 1px dashed var(--link); outline-offset: 0; }

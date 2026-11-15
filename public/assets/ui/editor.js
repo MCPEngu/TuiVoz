@@ -4,8 +4,9 @@ import { state } from '../core/dom.js';
 import { editorCodeHtml, editorDomCode, editorCodePlain } from '../lib/editorCodec.js';
 import { loadSmilies, smiliesReady, renderSmilies } from '../lib/smilies.js';
 import { editorToolbar, showToolPanel, panelTools } from './editorTools.js';
+import { attachImageResizer } from './imageResizer.js';
 import { uploadImageFiles, pikBbcode } from '../lib/pikUpload.js';
-import { AttachmentUploads, attachmentSupported } from '../lib/uploadAttachments.js';
+import { AttachmentUploads, attachmentSupported, ATTACH_ACCEPT } from '../lib/uploadAttachments.js';
 
 // `context` pins the attachment key to its target, e.g. { thread_id } for a reply or { node_id } for a new
 // thread — the same values the app posts in `context[...]` to /attachments/new-key.
@@ -45,6 +46,7 @@ function wireOneEditor(editor) {
     const panel = editor.querySelector('.editor-panel');
     const preview = editor.querySelector('.editor-preview');
     const status = editor.querySelector('.editor-status');
+    attachImageResizer(editor, visual);
     const native = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value');
     let sourceMode = false, savedRange = null, sourceSelection = [0, 0], composing = false;
     const history = [textarea.value]; let position = 0;
@@ -220,6 +222,9 @@ function wireOneEditor(editor) {
     const outsidePointer = (event) => {
       if (!editor.isConnected) { document.removeEventListener('pointerdown', outsidePointer); return; }
       if (event.target.closest('.editor-toolbar, .editor-panel')?.closest('.rich-editor') === editor) return;
+      // The emoji and sticker pickers stay open until their own toolbar button is pressed again; they cover a lot
+      // of the screen on mobile, so an outside tap is the only other way to dismiss them.
+      if (['smilies', 'stickers'].includes(panel.dataset.panelKind) && !panel.hidden) { closeMenus(); return; }
       closeMenus(); closePanel();
     };
     document.addEventListener('pointerdown', outsidePointer);
@@ -255,8 +260,8 @@ function wireOneEditor(editor) {
         }
       });
     }
-    // Native voz attachments for logged-in users (declared via data-attach-context); guests still go to pik.vn.
-    // Forms read `editor._uploads` at submit to pass `attachment_key` to the API.
+    // Native voz attachments: voz's own "Đính kèm tệp" button opens a file picker for any accepted type and the
+    // files join the post through `attachment_key`. Paste/drop stay on pik.vn (see uploadAndInsert).
     let attachContext = null;
     try { attachContext = editor.dataset.attachContext ? JSON.parse(editor.dataset.attachContext) : null; } catch { attachContext = null; }
     const uploads = attachContext && attachmentSupported() ? new AttachmentUploads(attachContext) : null;
@@ -275,7 +280,7 @@ function wireOneEditor(editor) {
           (item) => `<li class="attach-row is-${item.status}">
             ${item.status === 'done' ? `<img class="attach-thumb" src="${esc(item.attachment.thumbnail_url || item.attachment.direct_url || item.attachment.url || '')}" alt="">` : ''}
             <span class="attach-name">${esc(item.name)}</span>
-            <span class="attach-state">${item.status === 'uploading' ? 'Đang tải…' : item.status === 'error' ? esc(item.error || 'Lỗi') : `<button type="button" data-attach-remove title="Gỡ ảnh đính kèm">&times;</button>`}</span>
+            <span class="attach-state">${item.status === 'uploading' ? 'Đang tải…' : item.status === 'error' ? esc(item.error || 'Lỗi') : `<button type="button" data-attach-remove title="Gỡ tệp đính kèm">&times;</button>`}</span>
           </li>`
         )
         .join('');
@@ -290,30 +295,53 @@ function wireOneEditor(editor) {
       const item = uploads.items[index];
       if (item) uploads.remove(item).then(renderUploadList);
     });
-    // Clipboard and dropped images upload natively (or to pik.vn for guests); the status line reports progress
-    // because it is a network round trip.
+
+    // The attach button lives in the form's button row (views/thread.js) so it sits next to the submit button;
+    // its hidden any-file input is injected once per editor.
+    const attachInput = document.createElement('input');
+    attachInput.type = 'file';
+    attachInput.multiple = true;
+    attachInput.hidden = true;
+    attachInput.accept = ATTACH_ACCEPT;
+    attachInput.addEventListener('change', () => {
+      attachFiles([...attachInput.files]);
+      attachInput.value = '';
+    });
+    editor.append(attachInput);
+    const attachButton = editor.closest('form')?.querySelector('.editor-attach-button') || null;
+    attachButton?.addEventListener('click', () => {
+      if (!uploads) {
+        status.textContent = 'Đăng nhập lại để cấp quyền đính kèm tệp (attachment:write).';
+        return;
+      }
+      attachInput.click();
+    });
+
+    const attachFiles = async (files) => {
+      if (!uploads || !files.length) return;
+      status.textContent = files.length > 1 ? `Đang tải ${files.length} tệp đính kèm…` : 'Đang tải tệp đính kèm…';
+      try {
+        await uploads.add(files, notifyAttach);
+        const done = uploads.done.filter((item) => !item.inserted);
+        for (const item of done) item.inserted = true;
+        if (done.length) insert(done.map((item) => uploads.attachBbcode(item)).join('\n'));
+        const failed = uploads.items.filter((item) => item.status === 'error');
+        status.textContent = failed.length
+          ? `Không tải được: ${failed.map((item) => item.error).join('; ')}`
+          : `Đã đính kèm ${uploads.done.length} tệp.`;
+      } catch (error) {
+        status.textContent = error.message || 'Tải tệp lên thất bại.';
+      }
+    };
+    // Paste, drop and the image panel always host on pik.vn and insert [IMG]; the native attachment API is a
+    // separate button (xem attach::*) for arbitrary files. The status line reports progress because it is a
+    // network round trip.
     const pendingUploads = new Set();
     const uploadAndInsert = async (files) => {
       if (!files?.length) return;
       if (sourceMode) status.textContent = 'Chuyển về chế độ soạn thảo để tải ảnh lên.';
       const token = Symbol('upload');
       pendingUploads.add(token);
-      if (uploads) {
-        status.textContent = files.length > 1 ? `Đang tải ${files.length} ảnh đính kèm…` : 'Đang tải ảnh đính kèm…';
-        try {
-          await uploads.add(files, notifyAttach);
-          const done = uploads.done.filter((item) => !item.inserted);
-          for (const item of done) item.inserted = true;
-          if (done.length) insert(done.map((item) => uploads.attachBbcode(item)).join('\n'));
-          const failed = uploads.items.filter((item) => item.status === 'error');
-          status.textContent = failed.length ? `Không tải được: ${failed.map((item) => item.error).join('; ')}` : `Đã đính kèm ${uploads.done.length} ảnh.`;
-        } catch (error) {
-          status.textContent = error.message || 'Tải ảnh lên thất bại.';
-        } finally {
-          pendingUploads.delete(token);
-        }
-        return;
-      }
       status.textContent = files.length > 1 ? `Đang tải ${files.length} ảnh lên pik.vn…` : 'Đang tải ảnh lên pik.vn…';
       try {
         const { results, skipped } = await uploadImageFiles(files, (done, total) => {

@@ -74,7 +74,6 @@ export function editorToolbar(id) {
     <div class="editor-overflow editor-misc" id="${esc(id)}-misc" data-menu-panel="misc" hidden>
       <div class="editor-menu-icons">${['redo','mode','clear'].map(button).join('')}</div>
       <div class="editor-drafts"><button type="button" data-tool="restore">Khôi phục nháp</button><button type="button" data-tool="discard">Xoá nháp</button></div>
-      <p class="editor-hint">Nháp trên thiết bị này: 30 ngày. Dán hoặc kéo thả ảnh để tải lên pik.vn. Xem trước cục bộ có thể khác voz.vn.</p>
     </div>
   </div>`;
 }
@@ -112,25 +111,8 @@ function renderUploadStrip(container, insert) {
     list.replaceChildren();
     status.textContent = 'Đang tải ảnh lên…';
     try {
-      // Logged-in editors with an attachment context upload natively; the strip lists its files and the main
-      // editor strip mirrors them. Guests keep pik.vn.
-      const editor = container.closest('.rich-editor');
-      const uploads = editor?._uploads;
-      if (uploads) {
-        const before = new Set(uploads.items);
-        await uploads.add(files, () => editor.dispatchEvent(new CustomEvent('attach:changed')));
-        for (const item of uploads.items) {
-          if (before.has(item)) continue;
-          if (item.status === 'done') {
-            if (!item.inserted) { item.inserted = true; insert(uploads.attachBbcode(item)); }
-            row(`${item.name} → đã đính kèm`, 'ok');
-          } else if (item.status === 'error') {
-            row(`${item.name} → ${item.error}`, 'error');
-          }
-        }
-        status.textContent = uploads.done.length ? `Đã đính kèm ${uploads.done.length} ảnh.` : 'Không tải được ảnh nào.';
-        return;
-      }
+      // The image panel is a pik.vn front end: it posts [IMG] and never touches the attachment API. Attaching
+      // arbitrary files is the separate "Đính kèm tệp" button.
       const { results, skipped } = await uploadImageFiles(files, (done, total) => {
         status.textContent = `Đang tải ảnh lên… ${done}/${total}`;
       });

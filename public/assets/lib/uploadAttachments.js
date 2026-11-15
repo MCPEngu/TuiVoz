@@ -8,6 +8,9 @@ import { state } from '../core/dom.js';
 import { registerAttachments } from './attachments.js';
 
 export const ATTACH_MAX_BYTES = 8 * 1024 * 1024; // images ≤ 8 MB like the app
+// voz's attach picker `accept` list, taken from its own .js-attachmentUpload button: archives, text, PDF and
+// the image formats it accepts (svg included — it is not a raster type, so it cannot go through pik.vn).
+export const ATTACH_ACCEPT = '.zip,.7z,.tgz,.txt,.pdf,.png,.jpg,.jpeg,.gif,.svg,.webp';
 
 // Editors declare what their post will be attached to so the key carries the right context:
 // { thread_id } for replies, { post_id } for edits, { node_id } for new threads.
@@ -41,6 +44,8 @@ export class AttachmentUploads {
   }
 
   async add(files, onChange) {
+    // No size filter here: voz's own uploader lets the server reject an oversized file, and the API reports the
+    // reason (413 / "too large"), which reads better than a silent drop.
     const list = [...(files || [])].filter((file) => file && file.size > 0);
     if (!list.length) return;
     const notify = () => onChange?.(this.items);

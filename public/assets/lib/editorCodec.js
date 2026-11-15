@@ -69,7 +69,7 @@ export function editorCodeHtml(value, preview = false) {
     }
     if (tag === 'img' && safeEditorUrl(text)) {
           // Images keep size/width so the editor shows the picture; they round-trip via data-bb-*.
-          const size = /size\s*=\s*"?(\d+)(?:x(\d+))?"?/i.exec(node.attrs);
+          const size = /(?:^|\s)(?:size\s*=|=\s*)\s*"?(\d+)(?:x(\d+))?"?/i.exec(node.attrs);
           const width = /width\s*=\s*"?(\d+)(?:px)?"?/i.exec(node.attrs);
           const height = /height\s*=\s*"?(\d+)(?:px)?"?/i.exec(node.attrs);
           let style = '';
@@ -80,7 +80,7 @@ export function editorCodeHtml(value, preview = false) {
         // [ATTACH] carries an id, not a URL: shown once the view registers the attachments.
         if (tag === 'attach') {
           const attachment = getAttachment(text.trim());
-          const size = /size\s*=\s*"?(\d+)(?:x(\d+))?"?/i.exec(node.attrs);
+          const size = /(?:^|\s)(?:size\s*=|=\s*)\s*"?(\d+)(?:x(\d+))?"?/i.exec(node.attrs);
           const image = attachmentImage(attachment, size ? { width: size[1], height: size[2] || size[1] } : null);
           if (image) {
             const style = image.width || image.height
@@ -109,6 +109,15 @@ export function editorCodeHtml(value, preview = false) {
   return parseEditorCode(value).children.map(render).join('');
 }
 export function editorDomCode(root) {
+  // Rebuilds `=WxH` from the element's inline width/height, dropping any size already in the stored attrs.
+  // The editor's resizer writes px, so only a px width is meaningful; %/auto falls back to the original attrs.
+  function sizedAttrs(node, attrs) {
+    const width = parseInt(node.style?.width, 10);
+    if (!width || width < 16) return String(attrs || '').replace(/=\s*\d+(?:x\d+)?\s*/, '');
+    const height = parseInt(node.style?.height, 10);
+    const size = height && Math.abs(height - width) > 1 ? `${width}x${height}` : String(width);
+    return `=${size}`;
+  }
   function serialize(node) {
     if (node.nodeType === 3) return node.nodeValue.replace(/\u00a0/g, ' ');
     if (node.nodeType !== 1) return '';
@@ -119,6 +128,9 @@ export function editorDomCode(root) {
     if (name === 'img' && node.dataset.smilie) return node.dataset.smilie;
     let body = [...node.childNodes].map(serialize).join('');
     let tag = node.dataset.bbTag, attrs = node.dataset.bbAttrs || '';
+    // A resized picture carries its new width in the inline style; fold it back into the BBCode attrs so the
+    // post keeps [IMG=W] / [ATTACH=W] and the server renders it at that size.
+    if (tag === 'img' || tag === 'attach') attrs = sizedAttrs(node, attrs);
     if (tag === 'img') return `[IMG${attrs}]${safeEditorUrl(node.getAttribute('src')) || ''}[/IMG]`;
     // An attachment picture serializes back to its numeric id; the element only knows the URL.
     if (tag === 'attach') {

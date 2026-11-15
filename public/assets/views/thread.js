@@ -4,7 +4,7 @@ import { app, state } from '../core/dom.js';
 import { esc, num } from '../core/utils.js';
 import { threadPath, forumPath, userPath, withPage } from '../core/paths.js';
 import { currentPage, navigate, keepCurrentScroll } from '../core/nav.js';
-import { ICON_EYE_ON, ICON_EYE_OFF, ICON_USER, ICON_REPLY } from '../core/icons.js';
+import { ICON_EYE_ON, ICON_EYE_OFF, ICON_USER, ICON_REPLY, ICON_ATTACH } from '../core/icons.js';
 import { avatarMarkup } from '../lib/avatar.js';
 import { api, ApiError } from '../api.js';
 import { setActiveNav, setBreadcrumbs } from '../ui/chrome.js';
@@ -196,6 +196,7 @@ export async function viewThread(threadId, page, focusPost) {
                            <div class="message-editorWrapper">
                              ${editorHtml('reply-message', '', 'Nội dung trả lời (BBCode)…', { thread_id: threadId })}
                              <div class="formButtonGroup">
+                               <button class="button button--small editor-attach-button" type="button" title="Đính kèm tệp" aria-label="Đính kèm tệp">${ICON_ATTACH}<span class="button-text">Đính kèm tệp</span></button>
                                <div class="formButtonGroup-primary">
                                  <button class="button button--icon button--icon--reply button--primary" type="submit">${ICON_REPLY}<span class="button-text">Gửi trả lời</span></button>
                                </div>
