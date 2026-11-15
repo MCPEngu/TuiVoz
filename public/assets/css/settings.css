@@ -1,6 +1,18 @@
 /* Settings page: nav shortcuts + JSON backup/restore. */
 
 .settings-note { margin: 0; padding: 10px 12px; font-size: calc(13px * var(--ui-scale)); color: var(--dimmed); background: var(--content-bg); }
+/* Warning beside an option that costs extra API calls. */
+.settings-note--warn {
+  margin: 8px 0 16px;
+  border-left: 3px solid #d9a300;
+  border-radius: 3px;
+  background: color-mix(in srgb, #d9a300 12%, var(--content-bg));
+  color: var(--text);
+}
+:root[data-theme="dark"] .settings-note--warn {
+  border-left-color: #ffcc4d;
+  background: color-mix(in srgb, #ffcc4d 14%, var(--content-bg));
+}
 
 /* Tabbed layout: one panel at a time. The tab strip sits inside the block, and panels carry
    no heading of their own — the tab label above is the heading. */

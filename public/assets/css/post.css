@@ -25,6 +25,8 @@
 .member-card-stats { display: flex; justify-content: space-around; text-align: center; padding: 12px 6px; color: var(--dimmed); }
 .member-card-stats strong { display: block; font-size: calc(18px * var(--ui-scale)); font-weight: 400; color: var(--text); }
 .member-card-actions { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-top: 1px solid var(--border); }
+.member-card-banned { margin-top: 4px; font-size: calc(12px * var(--ui-scale)); font-weight: var(--fw-bold); color: #b3261e; }
+:root[data-theme="dark"] .member-card-banned { color: #f2b8b5; }
 
 /* Top row above the first post: page navigator. */
 .block-outer {

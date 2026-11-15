@@ -3,6 +3,7 @@ import { userPath } from '../core/paths.js';
 import { avatarMarkup } from '../lib/avatar.js';
 import { api } from '../api.js';
 import { userBadges } from '../lib/userBadges.js';
+import { applyBannedMark, bannedFeatureOn } from '../lib/bannedUsers.js';
 
 const cache = new Map();
 let active;
@@ -58,9 +59,28 @@ export function wireMemberTooltips(container, users) {
     };
     const id = link.dataset.memberId;
     render(byId.get(id) || { user_id: Number(id), username: link.textContent });
+    const decorateBanned = () => {
+      // "smart" mode resolves the ban only for the member the reader actually opened.
+      if (!bannedFeatureOn() || !card) return;
+      const targetCard = card;
+      applyBannedMark(link, id).then((banned) => {
+        if (!banned || !targetCard.isConnected) return;
+        // render() replaces innerHTML, so the name element is resolved here rather than held from before.
+        targetCard.querySelector('.member-card-name')?.classList.add('username--banned');
+        const host = targetCard.querySelector('.member-card-header > div');
+        if (host && !targetCard.querySelector('.member-card-banned')) {
+          const note = document.createElement('div');
+          note.className = 'member-card-banned';
+          note.textContent = 'Tài khoản đã bị ban';
+          host.append(note);
+        }
+      }).catch(() => {});
+    };
+    decorateBanned();
     try {
       if (!cache.has(id)) cache.set(id, api.user(id).then((res) => res.user).catch((err) => { cache.delete(id); throw err; }));
       render(await cache.get(id));
+      decorateBanned();
     } catch { /* Keep the public details already included with the post. */ }
   };
   for (const link of container.querySelectorAll('[data-member-id]')) {

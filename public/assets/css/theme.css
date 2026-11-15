@@ -41,3 +41,4 @@
 
 /* Selection colour follows the accent in both themes. */
 :root[data-theme="dark"] ::selection { background: #414849; color: var(--text); }
+:root[data-theme-mode="catppuccin-mocha"] ::selection { background: #45475a; }

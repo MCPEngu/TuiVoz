@@ -6,6 +6,7 @@ import { avatarMarkup } from '../lib/avatar.js';
 import { prefixLabel } from '../lib/prefix.js';
 import { bbcodeToPlain } from '../lib/bbcode.js';
 import { threadLastPage } from '../lib/unread.js';
+import { wireBannedUsernames } from '../lib/bannedUsers.js';
 
 export function threadRow(thread, { sticky = false, showForum = false } = {}) {
   const starter = thread.User || { user_id: thread.user_id, username: thread.username };
@@ -42,7 +43,7 @@ export function threadRow(thread, { sticky = false, showForum = false } = {}) {
         <div class="structItem-title">${prefixLabel(thread)}<a href="${titleHref}">${esc(thread.title)}</a></div>
         <div class="structItem-minor">
           <ul class="structItem-parts">
-            <li><a href="${userPath(starter)}">${esc(thread.username)}</a></li>
+            <li><a href="${userPath(starter)}" class="username" data-member-id="${Number(starter.user_id)}">${esc(thread.username)}</a></li>
             <li class="structItem-startDate"><a href="${threadPath(thread)}">${timeAgo(thread.post_date)}</a></li>
             ${showForum && thread.Forum ? `<li><a href="${forumPath(thread.Forum)}">${esc(thread.Forum.title)}</a></li>` : ''}
           </ul>${jump}
@@ -53,7 +54,7 @@ export function threadRow(thread, { sticky = false, showForum = false } = {}) {
       </div>
       <div class="structItem-cell structItem-cell--latest">
         <a href="${withPage(threadPath(thread), lastPage)}"><time class="structItem-latestDate">${timeAgo(thread.last_post_date)}</time></a>
-        <div class="structItem-minor"><a href="${userPath(lastUser)}">${esc(thread.last_post_username || '')}</a></div>
+        <div class="structItem-minor"><a href="${userPath(lastUser)}" class="username" data-member-id="${Number(thread.last_post_user_id)}">${esc(thread.last_post_username || '')}</a></div>
       </div>
       <div class="structItem-cell structItem-cell--icon structItem-cell--iconEnd">
         <div class="structItem-iconContainer">
@@ -61,6 +62,12 @@ export function threadRow(thread, { sticky = false, showForum = false } = {}) {
         </div>
       </div>
     </li>`;
+}
+
+// Thread list, post lists and member-content rows all carry data-member-id on their username links, so one
+// scan covers the starter, the latest poster and any attribution. `users` lets visible accounts skip a request.
+export function wireThreadRowBans(root, users) {
+  wireBannedUsernames(root, users);
 }
 
 // Row for post-centric lists (bookmarks, search results).
@@ -79,7 +86,7 @@ export function postRow(post, thread) {
         <div class="structItem-title"><a href="${href}">${esc(title)}</a></div>
         <div class="structItem-minor">
           <ul class="structItem-parts">
-            <li><a href="${userPath(author)}">${esc(post.username)}</a></li>
+            <li><a href="${userPath(author)}" class="username" data-member-id="${Number(author.user_id)}">${esc(post.username)}</a></li>
             <li>${timeAgo(post.post_date)}</li>
           </ul>
         </div>
@@ -93,7 +100,7 @@ export function postRow(post, thread) {
 export function memberContentRow(thread, snippetText) {
   const starter = thread.User || { user_id: thread.user_id, username: thread.username };
   const parts = [
-    `<li><a href="${userPath(starter)}" class="username">${esc(thread.username)}</a></li>`,
+    `<li><a href="${userPath(starter)}" class="username" data-member-id="${Number(starter.user_id)}">${esc(thread.username)}</a></li>`,
     `<li>Thread</li>`,
     `<li>${timeAgo(thread.post_date)}</li>`,
     `<li>Replies: ${num(thread.reply_count)}</li>`,
@@ -124,7 +131,7 @@ export function memberPostRow(post, thread, snippetText) {
   const title = t.title || `Bài #${post.post_id}`;
   const pos = post.position != null ? `Post #${Number(post.position) + 1}` : 'Post';
   const parts = [
-    `<li><a href="${userPath(author)}" class="username">${esc(post.username)}</a></li>`,
+    `<li><a href="${userPath(author)}" class="username" data-member-id="${Number(author.user_id)}">${esc(post.username)}</a></li>`,
     `<li>${pos}</li>`,
     `<li>${timeAgo(post.post_date)}</li>`,
     t.Forum ? `<li>Forum: <a href="${forumPath(t.Forum)}">${esc(t.Forum.title)}</a></li>` : '',
@@ -161,7 +168,7 @@ export function memberActivityRow(post, thread, snippetText) {
           <a href="${userPath(author)}" class="avatar avatar--s">${avatarMarkup(author, 's')}</a>
         </span>
         <div class="contentRow-main">
-          <h3 class="contentRow-title"><a href="${userPath(author)}" class="username">${esc(post.username)}</a> replied to the thread <a href="${postUrl}">${t.prefix ? prefixLabel(t) : ''}${esc(title)}</a>.</h3>
+          <h3 class="contentRow-title"><a href="${userPath(author)}" class="username" data-member-id="${Number(author.user_id)}">${esc(post.username)}</a> replied to the thread <a href="${postUrl}">${t.prefix ? prefixLabel(t) : ''}${esc(title)}</a>.</h3>
           ${snippetText ? `<div class="contentRow-snippet">${esc(snippetText)}</div>` : ''}
           <div class="contentRow-minor contentRow-minor--hideLinks">
             <ul class="listInline listInline--bullet"><li>${timeAgo(post.post_date)}</li></ul>
@@ -179,7 +186,7 @@ export function profilePostCommentRow(item, ownerName) {
   const title = ownerName ? `Bài trên tường của ${ownerName}` : 'Bài trên tường';
   const kind = item.type === 'profile_post' ? 'Profile post' : 'Profile post comment';
   const parts = [
-    `<li><a href="${userPath(author)}" class="username">${esc(c.username)}</a></li>`,
+    `<li><a href="${userPath(author)}" class="username" data-member-id="${Number(author.user_id)}">${esc(c.username)}</a></li>`,
     `<li>${kind}</li>`,
     `<li>${timeAgo(c.comment_date || c.post_date)}</li>`,
   ].join('');

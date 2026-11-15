@@ -44,17 +44,21 @@ export const emptySettings = () => ({
   imageDownload: IMAGE_DOWNLOAD_DEFAULT,
   postScreenshot: POST_SCREENSHOT_DEFAULT,
   staticAvatars: STATIC_AVATARS_DEFAULT,
+  bannedUsers: BANNED_USERS_DEFAULT,
   fullNumbers: FULL_NUMBERS_DEFAULT,
 });
 
 // Colour scheme for the content area; the chrome keeps its dark styling in both modes.
-//   auto — follow the OS and keep following it; light / dark — fixed.
-export const THEME_MODES = ['auto', 'light', 'dark'];
+//   auto — follow the OS and keep following it; light / dark — fixed; catppuccin-* — fixed palettes
+//   that resolve to light/dark for the shared rules and re-point the tokens by data-theme-mode.
+export const THEME_MODES = ['auto', 'light', 'dark', 'catppuccin-latte', 'catppuccin-mocha'];
 export const THEME_DEFAULT = 'auto';
 export const THEME_LABELS = {
   auto: 'Tự động theo hệ thống',
   light: 'Sáng',
   dark: 'Tối',
+  'catppuccin-latte': 'Catppuccin Latte',
+  'catppuccin-mocha': 'Catppuccin Mocha',
 };
 
 // Typography. The list order is the radio group order in Cài đặt → Giao diện. `be-vietnam` is the default and
@@ -97,6 +101,23 @@ export const FONT_SCALE_DEFAULT = 100;
 export const IMAGE_DOWNLOAD_DEFAULT = false;
 export const POST_SCREENSHOT_DEFAULT = false;
 export const STATIC_AVATARS_DEFAULT = false;
+// Strike through members whose account is banned ("KIA"), like voz.vn does for moderators.
+//   off   — never look anybody up (default)
+//   smart — only when the reader opens a member tooltip or visits their profile, so the cost is one request per
+//           member the reader actually asked about
+//   all   — every username that scrolls near the viewport
+export const BANNED_USER_MODES = ['off', 'smart', 'all'];
+export const BANNED_USERS_DEFAULT = 'off';
+export const BANNED_USERS_LABELS = {
+  off: 'Tắt',
+  smart: 'Chế độ thông minh',
+  all: 'Luôn hiển thị',
+};
+export const BANNED_USERS_HELP = {
+  off: 'Tên nick hiện như bình thường, không kiểm tra gì.',
+  smart: 'Chỉ hiển thị thành viên bị ban khi nhấn tooltip của thành viên hoặc khi xem tường nhà của họ.',
+  all: 'Gạch ngang mọi nick bị ban ngay trong bài viết và danh sách chủ đề. Tốn nhiều lượt gọi API nhất.',
+};
 
 // Full (unrounded) statistics and absolute dates. off — voz.vn's rounded numbers; thread — inside a thread
 // only; all — everywhere.
@@ -148,6 +169,12 @@ export function normalizeSettings(raw) {
   out.imageDownload = raw?.imageDownload === true;
   out.postScreenshot = raw?.postScreenshot === true;
   out.staticAvatars = raw?.staticAvatars === true;
+  // Older builds stored a boolean here; `true` meant "always show".
+  out.bannedUsers = raw?.bannedUsers === true
+    ? 'all'
+    : BANNED_USER_MODES.includes(raw?.bannedUsers)
+      ? raw.bannedUsers
+      : BANNED_USERS_DEFAULT;
   out.fullNumbers = FULL_NUMBERS_MODES.includes(raw?.fullNumbers) ? raw.fullNumbers : FULL_NUMBERS_DEFAULT;
   const list = Array.isArray(raw?.navShortcuts) ? raw.navShortcuts : [];
   const seen = new Set();
@@ -296,6 +323,17 @@ export function getStaticAvatars() {
   return loadSettings().staticAvatars === true;
 }
 
+export function setBannedUsers(mode) {
+  const settings = loadSettings();
+  settings.bannedUsers = BANNED_USER_MODES.includes(mode) ? mode : BANNED_USERS_DEFAULT;
+  return saveSettings(settings);
+}
+
+export function getBannedUsers() {
+  const mode = loadSettings().bannedUsers;
+  return BANNED_USER_MODES.includes(mode) ? mode : BANNED_USERS_DEFAULT;
+}
+
 export function setFullNumbers(mode) {
   const settings = loadSettings();
   settings.fullNumbers = FULL_NUMBERS_MODES.includes(mode) ? mode : FULL_NUMBERS_DEFAULT;
@@ -322,6 +360,7 @@ export function exportSettingsJson({ albums = [], recent = [] } = {}) {
     imageDownload: settings.imageDownload,
     postScreenshot: settings.postScreenshot,
     staticAvatars: settings.staticAvatars,
+    bannedUsers: settings.bannedUsers,
     fullNumbers: settings.fullNumbers,
   };
   // Sticker payload mirrors the userscript backup so either file can be restored.
