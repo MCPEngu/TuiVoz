@@ -334,3 +334,46 @@
 }
 .pageNav a.pageNav-author:hover { background: none; color: var(--on-dark); }
 .pageNav-author svg { flex: 0 0 auto; opacity: .8; }
+
+/* ---- contentRow: voz search / member-content list rows (block-row wrapper) ---- */
+.block-row { margin: 0; padding: 6px 10px; }
+.block-row::before, .block-row::after { content: " "; display: table; }
+.block-row::after { clear: both; }
+.block-row.block-row--separated { padding-top: 12px; padding-bottom: 12px; }
+.block-row.block-row--separated + .block-row { border-top: 1px solid var(--border-faint); }
+.block-row.block-row--clickable:hover { background: var(--border-faint); }
+.block-row > p:first-child { margin-top: 0; }
+.block-row > p:last-child { margin-bottom: 0; }
+ul.block-body, ol.block-body { list-style: none; margin: 0; padding: 0; }
+
+.contentRow { display: flex; }
+.contentRow.contentRow--alignMiddle { align-items: center; }
+.contentRow-figure { flex: 0 0 auto; vertical-align: top; white-space: nowrap; text-align: center; }
+.contentRow-figure img, .contentRow-figure .avatar { vertical-align: bottom; }
+.contentRow-main { flex: 1 1 0%; min-width: 0; vertical-align: top; padding-left: 10px; }
+.contentRow-main::before { content: ""; display: block; margin-top: -0.18em; }
+.contentRow-main:first-child { padding-left: 0; }
+.contentRow-main.contentRow-main--close { padding-left: 6px; }
+.contentRow-header { margin: 0; padding: 0; font-weight: 600; font-size: calc(16px * var(--ui-scale)); }
+.contentRow-title { margin: 0; padding: 0; font-weight: 400; font-size: calc(16px * var(--ui-scale)); }
+.contentRow-snippet { margin: 0.25em 0; font-size: calc(15px * var(--ui-scale)); }
+.contentRow-minor { font-size: calc(13px * var(--ui-scale)); color: var(--dimmed); }
+.contentRow-minor.contentRow-minor--hideLinks a { color: inherit; text-decoration: none; }
+.contentRow-minor.contentRow-minor--hideLinks a:hover { text-decoration: underline; }
+.contentRow-minor.contentRow-minor--smaller { font-size: calc(12px * var(--ui-scale)); }
+.contentRow-minor.contentRow-minor--singleLine { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.contentRow-suffix { padding-left: 6px; white-space: nowrap; }
+.contentRow-extra { float: right; padding-left: 6px; font-size: calc(12px * var(--ui-scale)); }
+
+/* Inline meta list inside a contentRow — overrides the flex .listInline used by message attribution. */
+.contentRow-minor .listInline { display: block; list-style: none; margin: 0; padding: 0; }
+.contentRow-minor .listInline > li { display: inline; margin: 0; padding: 0; }
+.contentRow-minor .listInline.listInline--bullet > li + li::before { content: "· "; margin: 0; color: inherit; }
+.contentRow-minor .listInline.listInline--comma > li:nth-last-child(n+2)::after { content: ", "; }
+
+@media (max-width: 650px) {
+  .block-row.block-row--separated { padding: 10px 8px; }
+  .contentRow-title { font-size: calc(15px * var(--ui-scale)); }
+  .contentRow-snippet { font-size: calc(14px * var(--ui-scale)); }
+  .contentRow-minor { font-size: calc(12px * var(--ui-scale)); }
+}

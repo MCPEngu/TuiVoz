@@ -57,7 +57,7 @@ export function openInlineEditWith(post, ctx) {
   form.id = `inline-edit-${anchorId}`;
   form.noValidate = true;
   form.innerHTML = `
-    <div class="inline-edit-body">${editorHtml(`inline-edit-message-${anchorId}`, post.message || '', 'Nội dung bài viết…')}</div>
+    <div class="inline-edit-body">${editorHtml(`inline-edit-message-${anchorId}`, post.message || '', 'Nội dung bài viết…', kind === 'post' ? { post_id: post.post_id } : null)}</div>
     <div class="inline-edit-actions">
       <button class="button button--primary" type="submit">Lưu</button>
       <button class="button" type="button" data-cancel>Huỷ</button>
@@ -92,9 +92,11 @@ export function openInlineEditWith(post, ctx) {
     submit.disabled = true;
     submit.textContent = 'Đang lưu…';
     try {
+      const uploads = form.querySelector('.rich-editor')?._uploads;
+      const attachmentKey = uploads ? await uploads.attachmentKeyOrNull().catch(() => null) : undefined;
       const res = kind === 'conversation'
         ? await api.editConversationMessage(post.message_id, message)
-        : await api.editPost(post.post_id, message);
+        : await api.editPost(post.post_id, message, attachmentKey ? { attachment_key: attachmentKey } : undefined);
       const updated = (res.post || res.message) || {};
       post.message = updated.message ?? message;
       post.message_parsed = updated.message_parsed ?? post.message_parsed;

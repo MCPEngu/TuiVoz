@@ -2,7 +2,7 @@
 
 import { modalRoot } from '../core/dom.js';
 import { esc } from '../core/utils.js';
-import { ApiError } from '../api.js';
+import { api } from '../api.js';
 import { toast } from './feedback.js';
 
 export function openModal(title, bodyHtml, footerHtml, { className = '' } = {}) {
@@ -42,14 +42,7 @@ export function openReportModal(postId) {
     const message = document.getElementById('report-message').value.trim();
     if (!message) return toast('Nhập lý do', true);
     try {
-      await fetch(`/api/xf/posts/${postId}/report`, {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
-        body: new URLSearchParams({ message }).toString(),
-      }).then(async (res) => {
-        if (!res.ok) throw new ApiError(res.status, await res.json().catch(() => null));
-      });
+      await api.reportPost(postId, message);
       close();
       toast('Đã gửi báo cáo');
     } catch (err) {

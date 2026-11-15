@@ -143,3 +143,14 @@
   .rich-editor .editor-toolbar .editor-more { width: 18px; }
   .editor-group { padding: 0 1px; }
 }
+
+/* Native voz attachment strip under the editor. */
+.attach-strip { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.attach-row { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--content-bg, transparent); font-size: calc(13px * var(--ui-scale)); max-width: 100%; }
+.attach-thumb { width: 32px; height: 32px; object-fit: cover; border-radius: 4px; }
+.attach-name { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.attach-row.is-uploading .attach-state { color: var(--dimmed); }
+.attach-row.is-error { border-color: var(--error, #c33); }
+.attach-row.is-error .attach-state { color: var(--error, #c33); }
+.attach-state [data-attach-remove] { border: 0; background: none; color: var(--dimmed); cursor: pointer; font-size: 16px; line-height: 1; padding: 2px 4px; }
+.attach-state [data-attach-remove]:hover { color: var(--text); }

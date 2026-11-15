@@ -98,7 +98,7 @@ export async function viewDm(conversationId, page) {
       <div class="block block--messages block--conversation">
         <div class="block-header">
           <span class="block-header-title" id="conversation-title">${esc(conv.title)}</span>
-          <span class="block-header-extra">${num(conv.reply_count, 'thread')} trả lời</span>
+          <span class="block-header-extra">${num(conv.reply_count, 'thread')} trả lời · <a href="#" id="leave-conversation" data-id="${conv.conversation_id}">Rời hội thoại</a></span>
         </div>
         <div class="block-outer">
           <div class="block-outer-main">
@@ -149,6 +149,18 @@ export async function viewDm(conversationId, page) {
         toast(err.message || 'Gửi thất bại', true);
         submit.disabled = false;
         submit.textContent = 'Gửi';
+      }
+    });
+    // DELETE /conversations/{id}/ leaves the conversation (app flow); like voz.vn it cannot be rejoined.
+    document.getElementById('leave-conversation')?.addEventListener('click', async (event) => {
+      event.preventDefault();
+      if (!confirm('Rời hội thoại này? Bạn sẽ không nhận thêm tin nhắn.')) return;
+      try {
+        await api.leaveConversation(conversationId);
+        toast('Đã rời hội thoại');
+        navigate('/direct-messages');
+      } catch (err) {
+        toast(err.message || 'Không rời được hội thoại', true);
       }
     });
     // An alert's `direct-messages/replies/{id}` URL resolves to this route with the message hash; jump to it the

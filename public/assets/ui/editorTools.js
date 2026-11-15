@@ -112,6 +112,25 @@ function renderUploadStrip(container, insert) {
     list.replaceChildren();
     status.textContent = 'Đang tải ảnh lên…';
     try {
+      // Logged-in editors with an attachment context upload natively; the strip lists its files and the main
+      // editor strip mirrors them. Guests keep pik.vn.
+      const editor = container.closest('.rich-editor');
+      const uploads = editor?._uploads;
+      if (uploads) {
+        const before = new Set(uploads.items);
+        await uploads.add(files, () => editor.dispatchEvent(new CustomEvent('attach:changed')));
+        for (const item of uploads.items) {
+          if (before.has(item)) continue;
+          if (item.status === 'done') {
+            if (!item.inserted) { item.inserted = true; insert(uploads.attachBbcode(item)); }
+            row(`${item.name} → đã đính kèm`, 'ok');
+          } else if (item.status === 'error') {
+            row(`${item.name} → ${item.error}`, 'error');
+          }
+        }
+        status.textContent = uploads.done.length ? `Đã đính kèm ${uploads.done.length} ảnh.` : 'Không tải được ảnh nào.';
+        return;
+      }
       const { results, skipped } = await uploadImageFiles(files, (done, total) => {
         status.textContent = `Đang tải ảnh lên… ${done}/${total}`;
       });

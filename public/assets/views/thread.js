@@ -25,6 +25,7 @@ import { wireTitleHold } from '../ui/titleHold.js';
 import { mountInfiniteScroll } from '../ui/infiniteScroll.js';
 import { openPostNumberPopup } from '../ui/postNumberPopup.js';
 import { jumpToAnchor } from '../lib/jumpToAnchor.js';
+import { signalOpen, signalRead } from '../lib/signals.js';
 
 // Posts currently on screen, extended as infinite scroll appends, so the delegated click handler can resolve a
 // post from any appended page.
@@ -116,6 +117,25 @@ export async function viewThread(threadId, page, focusPost) {
     const [res] = await Promise.all([api.thread(threadId, page === 'last' ? 1 : page), loadSmilies()]);
     const thread = res.thread;
     const posts = res.posts || [];
+    // Same analytics the app sends: an `open` when the thread screen mounts, a `read` when it unmounts
+    // (flushed in lib/signals.js). `_vozRead` accumulates pages/depth across page navigations.
+    signalOpen(thread.thread_id, 'other');
+    if (window._vozRead?.id !== thread.thread_id) window._vozRead = { id: thread.thread_id, started: Date.now(), pages: new Set(), depth: 0, posts: 0 };
+    window._vozRead.pages.add(res.pagination?.current_page || 1);
+    window._vozRead.posts = Math.max(window._vozRead.posts, posts.length);
+    if (!window._vozReadScrollWired) {
+      window._vozReadScrollWired = true;
+      window.addEventListener('scroll', () => {
+        if (!window._vozRead) return;
+        const height = Math.max(1, document.body.scrollHeight - innerHeight);
+        window._vozRead.depth = Math.max(window._vozRead.depth, Math.round((window.scrollY / height) * 100));
+      }, { passive: true });
+      window.addEventListener('voz:leave-thread', () => {
+        const read = window._vozRead;
+        window._vozRead = null;
+        if (read?.id) signalRead(read.id, Math.round((Date.now() - read.started) / 1000), read.posts, read.depth, read.pages.size);
+      });
+    }
     // [ATTACH] needs the post's attachment list to render a picture.
     clearAttachments();
     registerAttachments(posts);
@@ -174,7 +194,7 @@ export async function viewThread(threadId, page, focusPost) {
                          ${quickReplyUserHtml()}
                          <div class="message-cell message-cell--main">
                            <div class="message-editorWrapper">
-                             ${editorHtml('reply-message', '', 'Nội dung trả lời (BBCode)…')}
+                             ${editorHtml('reply-message', '', 'Nội dung trả lời (BBCode)…', { thread_id: threadId })}
                              <div class="formButtonGroup">
                                <div class="formButtonGroup-primary">
                                  <button class="button button--icon button--icon--reply button--primary" type="submit">${ICON_REPLY}<span class="button-text">Gửi trả lời</span></button>
@@ -429,7 +449,10 @@ function wireThreadActions(threadId, posts, thread, page = 1) {
       submit.disabled = true;
       submitLabel.textContent = 'Đang gửi…';
       try {
+        const uploads = form.querySelector('.rich-editor')?._uploads;
+        const attachmentKey = uploads ? await uploads.attachmentKeyOrNull().catch(() => null) : null;
         const body = { thread_id: threadId, message };
+        if (attachmentKey) body.attachment_key = attachmentKey;
         const res = await fetch('/api/xf/posts/', {
           method: 'POST',
           credentials: 'same-origin',

@@ -14,6 +14,7 @@ const CLIENT_ID = '2424906941304717';
 const IMGBUR_CLIENT_ID = '66850c248e91c93';
 const REDIRECT_URI = 'vozma26://oauth';
 const UA = 'VOZ/MA26';
+// All 14 scopes the official app requests. New scopes only take effect after a fresh login.
 const SCOPES = [
   'thread:read',
   'thread:write',
@@ -23,9 +24,12 @@ const SCOPES = [
   'conversation:write',
   'user:read',
   'user:write',
+  'profile_post:read',
   'search:read',
   'search:write',
   'attachment:read',
+  'attachment:write',
+  'attachment:delete',
 ].join(' ');
 
 const SESSION_COOKIE = 'voz_session';

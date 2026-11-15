@@ -87,3 +87,115 @@ export function postRow(post, thread) {
       </div>
     </li>`;
 }
+
+// Member recent-content / latest-activity rows — voz renders contentRow, not structItem.
+// Thread variant: prefix+title link, snippet, minor = user · Thread · date · Replies · Forum.
+export function memberContentRow(thread, snippetText) {
+  const starter = thread.User || { user_id: thread.user_id, username: thread.username };
+  const parts = [
+    `<li><a href="${userPath(starter)}" class="username">${esc(thread.username)}</a></li>`,
+    `<li>Thread</li>`,
+    `<li>${timeAgo(thread.post_date)}</li>`,
+    `<li>Replies: ${num(thread.reply_count)}</li>`,
+    thread.Forum ? `<li>Forum: <a href="${forumPath(thread.Forum)}">${esc(thread.Forum.title)}</a></li>` : '',
+  ].filter(Boolean).join('');
+  return `
+    <li class="block-row block-row--separated js-inlineModContainer" data-author="${esc(thread.username || '')}">
+      <div class="contentRow">
+        <span class="contentRow-figure">
+          <a href="${userPath(starter)}" class="avatar avatar--s">${avatarMarkup(starter, 's')}</a>
+        </span>
+        <div class="contentRow-main">
+          <h3 class="contentRow-title"><a href="${threadPath(thread)}">${prefixLabel(thread)}${esc(thread.title)}</a></h3>
+          ${snippetText ? `<div class="contentRow-snippet">${esc(snippetText)}</div>` : ''}
+          <div class="contentRow-minor contentRow-minor--hideLinks">
+            <ul class="listInline listInline--bullet">${parts}</ul>
+          </div>
+        </div>
+      </div>
+    </li>`;
+}
+
+// Post variant: title links to /t/<slug>/post-<id>, minor = user · Post #N · date · Forum.
+export function memberPostRow(post, thread, snippetText) {
+  const author = post.User || { user_id: post.user_id, username: post.username };
+  const t = thread || {};
+  const postUrl = t.thread_id ? `${threadPath(t)}post-${post.post_id}` : `/p/${post.post_id}/`;
+  const title = t.title || `Bài #${post.post_id}`;
+  const pos = post.position != null ? `Post #${Number(post.position) + 1}` : 'Post';
+  const parts = [
+    `<li><a href="${userPath(author)}" class="username">${esc(post.username)}</a></li>`,
+    `<li>${pos}</li>`,
+    `<li>${timeAgo(post.post_date)}</li>`,
+    t.Forum ? `<li>Forum: <a href="${forumPath(t.Forum)}">${esc(t.Forum.title)}</a></li>` : '',
+  ].filter(Boolean).join('');
+  const threadPrefix = t.prefix ? prefixLabel(t) : '';
+  return `
+    <li class="block-row block-row--separated js-inlineModContainer" data-author="${esc(post.username || '')}">
+      <div class="contentRow">
+        <span class="contentRow-figure">
+          <a href="${userPath(author)}" class="avatar avatar--s">${avatarMarkup(author, 's')}</a>
+        </span>
+        <div class="contentRow-main">
+          <h3 class="contentRow-title"><a href="${postUrl}">${threadPrefix}${esc(title)}</a></h3>
+          ${snippetText ? `<div class="contentRow-snippet">${esc(snippetText)}</div>` : ''}
+          <div class="contentRow-minor contentRow-minor--hideLinks">
+            <ul class="listInline listInline--bullet">${parts}</ul>
+          </div>
+        </div>
+      </div>
+    </li>`;
+}
+
+// Latest-activity variant: voz words the title as "<user> replied to the thread <title>."
+// and drops the meta list down to just the timestamp.
+export function memberActivityRow(post, thread, snippetText) {
+  const author = post.User || { user_id: post.user_id, username: post.username };
+  const t = thread || {};
+  const postUrl = t.thread_id ? `${threadPath(t)}post-${post.post_id}` : `/p/${post.post_id}/`;
+  const title = t.title || `Bài #${post.post_id}`;
+  return `
+    <li class="block-row block-row--separated js-inlineModContainer" data-author="${esc(post.username || '')}">
+      <div class="contentRow">
+        <span class="contentRow-figure">
+          <a href="${userPath(author)}" class="avatar avatar--s">${avatarMarkup(author, 's')}</a>
+        </span>
+        <div class="contentRow-main">
+          <h3 class="contentRow-title"><a href="${userPath(author)}" class="username">${esc(post.username)}</a> replied to the thread <a href="${postUrl}">${t.prefix ? prefixLabel(t) : ''}${esc(title)}</a>.</h3>
+          ${snippetText ? `<div class="contentRow-snippet">${esc(snippetText)}</div>` : ''}
+          <div class="contentRow-minor contentRow-minor--hideLinks">
+            <ul class="listInline listInline--bullet"><li>${timeAgo(post.post_date)}</li></ul>
+          </div>
+        </div>
+      </div>
+    </li>`;
+}
+
+// Row for profile-post comments in mixed member-content results.
+export function profilePostCommentRow(item, ownerName) {
+  const c = item.result || item;
+  const author = c.User || { user_id: c.user_id, username: c.username };
+  const postId = c.profile_post_id || c.ProfilePost?.profile_post_id;
+  const title = ownerName ? `Bài trên tường của ${ownerName}` : 'Bài trên tường';
+  const kind = item.type === 'profile_post' ? 'Profile post' : 'Profile post comment';
+  const parts = [
+    `<li><a href="${userPath(author)}" class="username">${esc(c.username)}</a></li>`,
+    `<li>${kind}</li>`,
+    `<li>${timeAgo(c.comment_date || c.post_date)}</li>`,
+  ].join('');
+  return `
+    <li class="block-row block-row--separated js-inlineModContainer" data-author="${esc(c.username || '')}">
+      <div class="contentRow">
+        <span class="contentRow-figure">
+          <a href="${userPath(author)}" class="avatar avatar--s">${avatarMarkup(author, 's')}</a>
+        </span>
+        <div class="contentRow-main">
+          <h3 class="contentRow-title"><a href="/pp/${postId}">${esc(title)}</a></h3>
+          <div class="contentRow-snippet">${esc(bbcodeToPlain(c.message || '').replace(/\s+/g, ' ').slice(0, 240))}</div>
+          <div class="contentRow-minor contentRow-minor--hideLinks">
+            <ul class="listInline listInline--bullet">${parts}</ul>
+          </div>
+        </div>
+      </div>
+    </li>`;
+}

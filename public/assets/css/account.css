@@ -83,3 +83,334 @@
   color: var(--dimmed);
   word-break: break-all;
 }
+
+/* ---------- profile tabs + wall ---------- */
+.profile-tabs { display: flex; gap: 2px; border-top: 1px solid var(--border); padding: 0 8px; overflow-x: auto; }
+.profile-tab { display: block; padding: 10px 14px; font-size: calc(14px * var(--ui-scale)); color: var(--dimmed); border-bottom: 2px solid transparent; white-space: nowrap; }
+.profile-tab:hover { color: var(--link); }
+.profile-tab.is-active { color: var(--link); font-weight: var(--fw-bold); border-bottom-color: var(--link); }
+.profile-body { padding-top: 0; }
+.profile-post { display: flex; gap: 10px; padding: 4px 0 12px; }
+.profile-post-main { flex: 1; min-width: 0; }
+.profile-comments { list-style: none; margin: 12px 0 0; padding: 12px 0 0; border-top: 1px solid var(--border); display: grid; gap: 12px; }
+.profile-comment { display: flex; gap: 8px; }
+
+/* ---------- member header (voz member page) ---------- */
+.memberHeader { margin-bottom: 0; }
+.memberHeader-main { display: flex; flex-direction: column; justify-content: flex-end; background: var(--content-bg); border-bottom: 1px solid var(--border); border-radius: 3px 3px 0 0; }
+.memberHeader--withBanner .memberHeader-main { min-height: 250px; }
+.memberProfileBanner { background-size: cover !important; background-position-x: center !important; background-repeat: no-repeat !important; }
+.memberHeader-mainContent { position: relative; }
+.memberHeader-avatar { position: absolute; padding: 10px; }
+.memberHeader-avatar .avatar--l { width: 192px; height: 192px; display: inline-block; }
+.memberHeader-avatar .avatar-fallback { width: 100%; height: 100%; font-size: 96px; }
+.memberHeader-content { padding: 10px 10px 10px 212px; }
+.memberHeader-name { margin: -0.15em 0 0; padding: 0; font-weight: 400; font-size: calc(24px * var(--ui-scale)); color: var(--text); }
+.memberHeader--withBanner .memberHeader-name, .memberHeader--withBanner .username { color: #fff; text-shadow: #000 -1px -1px 0, #000 1px -1px 0, #000 -1px 1px 0, #000 1px 1px 0; }
+.memberHeader--withBanner .memberHeader-blurbContainer { color: #fff; background: rgba(0,0,0,.4); border-radius: 4px; padding: 6px; margin-top: 6px; text-shadow: #000 0 0 1px; display: inline-block; }
+.memberHeader--withBanner .memberHeader-blurbContainer a { color: #ccc; }
+.memberHeader-blurb { margin-top: 3px; font-size: calc(14px * var(--ui-scale)); }
+.memberHeader-blurb .pairs dt { color: inherit; opacity: .8; }
+.memberHeader-separator { margin: 10px 0; border: 0; border-top: 1px solid var(--border); }
+.memberHeader-stats { font-size: calc(16px * var(--ui-scale)); }
+.memberHeader-buttons .buttonGroup { display: flex; flex-wrap: wrap; gap: 8px; }
+.pairJustifier { display: flex; flex-wrap: wrap; gap: 12px; }
+.pairs { margin: 0; display: inline-flex; gap: 4px; }
+.pairs--rows { flex-direction: column; text-align: center; }
+.pairs--rows > dt { font-size: 80%; color: var(--dimmed); }
+.pairs--rows > dd { margin: 0; }
+.pairs--inline > dt { color: var(--dimmed); }
+.pairs--inline > dd { margin: 0 8px 0 4px; }
+.pairs--columns > dt { float: left; clear: left; color: var(--dimmed); min-width: 90px; }
+.pairs--columns > dd { margin-left: 100px; }
+.fauxBlockLink-linkRow { color: inherit; }
+
+/* member tabs */
+.block-tabHeader { padding: 0; margin: 0; font-weight: 400; color: var(--dimmed); background: var(--header-bg, transparent); border-bottom: 1px solid var(--border); }
+.block-tabHeader .tabs-tab { font-size: calc(16px * var(--ui-scale)); padding: 6px 10px; display: inline-block; border-bottom: 3px solid transparent; color: inherit; cursor: pointer; }
+.block-tabHeader .tabs-tab:hover { color: var(--link); }
+.block-tabHeader .tabs-tab.is-active { color: var(--link); border-bottom-color: var(--link); }
+.hScroller-scroll { display: block; overflow-x: auto; white-space: nowrap; }
+
+/* profile post comments inside a .message */
+.message-responses { padding-top: 8px; }
+.message-responseRow { padding: 6px 0; }
+.comment-inner { display: flex; gap: 8px; }
+.comment-avatar { flex: 0 0 24px; }
+.comment-avatar .avatar, .comment-avatar img { width: 24px; height: 24px; border-radius: 4px; }
+.comment-main { flex: 1; min-width: 0; }
+.comment-user { font-weight: var(--fw-bold); }
+.comment-body { display: inline; }
+.comment-footer .actionBar { margin-top: 4px; color: var(--dimmed); font-size: calc(12px * var(--ui-scale)); }
+.listInline { list-style: none; margin: 0; padding: 0; display: flex; align-items: center; gap: 8px; }
+.listInline--bullet > li + li::before { content: "·"; margin-right: 8px; color: var(--dimmed); }
+.message-attribution--plain .avatar--xxs, .comment-avatar .avatar--xxs { width: 20px; height: 20px; }
+.attribution { margin: 0; font-size: calc(14px * var(--ui-scale)); font-weight: var(--fw-bold); display: inline; }
+
+@media (max-width: 650px) {
+  .memberHeader-avatar .avatar--l { width: 96px; height: 96px; }
+  .memberHeader-avatar .avatar-fallback { font-size: 48px; }
+  .memberHeader-content { padding-left: 116px; }
+}
+@media (max-width: 480px) {
+  .memberHeader-avatar { display: block; position: static; text-align: center; }
+  .memberHeader-content { padding-left: 10px; }
+}
+
+/* simple message (profile wall): narrow user cell like voz's message--simple */
+.message--simple .message-cell--user { flex: 0 0 82px; }
+.message--simple .message-avatar .avatar { width: 48px; height: 48px; }
+
+/* member header over banner: white text + translucent pills (voz) */
+.memberHeader--withBanner .memberHeader-nameWrapper, .memberHeader--withBanner .memberHeader-blurbContainer { color: #fff; }
+.memberHeader--withBanner .memberHeader-blurbContainer { background: rgba(0,0,0,.4); border-radius: 4px; padding: 6px; margin-top: 6px; text-shadow: #000 0 0 1px; display: inline-block; }
+.memberHeader--withBanner .memberHeader-blurbContainer a { color: #ccc; }
+.memberHeader--withBanner .memberHeader-blurbContainer .pairs dt { color: rgba(255,255,255,.8); }
+
+/* member tabs strip */
+.block-tabHeader--memberTabs { background: var(--overlay-bg, rgba(255,255,255,.06)); border-bottom: 1px solid var(--border); }
+.block-tabHeader--memberTabs .tabs-tab { padding: 8px 12px; }
+
+/* no-banner header: theme surface + themed text */
+.memberHeader:not(.memberHeader--withBanner) .memberHeader-main { min-height: 0; background: var(--content-bg); }
+.memberHeader:not(.memberHeader--withBanner) .memberHeader-name,
+.memberHeader:not(.memberHeader--withBanner) .memberHeader-nameWrapper,
+.memberHeader:not(.memberHeader--withBanner) .memberHeader-blurbContainer { color: var(--text); text-shadow: none; }
+.memberHeader:not(.memberHeader--withBanner) .memberHeader-blurbContainer { background: none; padding: 0; }
+.memberHeader:not(.memberHeader--withBanner) .memberHeader-blurbContainer .pairs dt { color: var(--dimmed); }
+
+/* memberHeader-main is a dark surface only when a banner image exists — keep light text */
+.memberHeader--withBanner .memberHeader-main,
+.memberHeader--withBanner .memberHeader-main .memberHeader-name,
+.memberHeader--withBanner .memberHeader-main .memberHeader-nameWrapper,
+.memberHeader--withBanner .memberHeader-main .memberHeader-blurbContainer { color: #fff; }
+.memberHeader--withBanner .memberHeader-main .memberHeader-blurbContainer .pairs dt { color: rgba(255,255,255,.8); }
+.memberHeader--withBanner .memberHeader-main .memberHeader-blurbContainer a { color: #ccc; }
+
+.formButtonGroup--simple { display: flex; justify-content: flex-end; }
+
+.formButtonGroup--simple { padding-top: 6px; padding-bottom: 6px; margin-top: 0; }
+
+.block-tabHeader--memberTabs { background: transparent; }
+.block-tabHeader--memberTabs .hScroller-scroll { display: flex; }
+.block-tabHeader--memberTabs .tabs-tab { flex: 1; text-align: center; }
+
+/* collapsed quick-reply placeholder (voz) */
+.editorPlaceholder-placeholder { padding: 0; }
+.editorPlaceholder-placeholder .input { display: block; padding: 7px 10px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--content-bg); color: var(--dimmed); font-size: calc(15px * var(--ui-scale)); cursor: text; }
+.editorPlaceholder-placeholder .input:hover { border-color: var(--link); }
+.u-muted { color: var(--dimmed); }
+.editorPlaceholder .is-hidden, .editorPlaceholder-placeholder.is-hidden { display: none !important; }
+
+/* voz block radius helpers */
+.block-topRadiusContent > .block-body .message--quickReply, .block-topRadiusContent.message--quickReply { border-radius: var(--radius) var(--radius) 0 0; }
+.block-bottomRadiusContent { border-radius: 0 0 var(--radius) var(--radius); }
+.block-topRadiusContent.block-bottomRadiusContent { border-radius: var(--radius); }
+
+/* gap between profile composer and posts — show page bg like voz */
+.block--messages .message--quickReply { margin-bottom: 8px; }
+.block--messages + .block--messages { margin-top: 8px; }
+
+/* tighter profile composer gap — hairline like voz */
+.block--messages .message--quickReply { margin-bottom: 0; }
+.block--messages + .block--messages { margin-top: 0; }
+.message--quickReply { border-bottom: 1px solid var(--border); }
+
+/* kill generic block margin on profile composer wrapper */
+.block--messages:has(#wall-post-form) { margin-bottom: 0; }
+
+/* gap between profile composer and first post — show page bg */
+.block--messages:has(#wall-post-form) { margin-bottom: 8px; }
+
+/* banner: force userTitle + blurb pure white */
+.memberHeader--withBanner .memberHeader-blurb, .memberHeader--withBanner .memberHeader-blurb .userTitle { color: #fff; }
+.memberHeader--withBanner .memberHeader-blurbContainer .memberHeader-blurb { color: #fff; }
+
+/* mobile: undo desktop simple-message narrowing — cell becomes a row */
+@media (max-width: 620px) {
+  .message--simple .message-cell--user { flex: 0 0 auto; }
+}
+
+/* mobile member header (voz): avatar centered, info stacked centered */
+@media (max-width: 480px) {
+  .memberHeader-avatar { position: static; display: block; text-align: center; padding: 10px 10px 0; }
+  .memberHeader-avatar .avatar--l { width: 96px; height: 96px; }
+  .memberHeader-avatar .avatar-fallback { font-size: 58px; }
+  .memberHeader-content { padding: 0 10px 10px; }
+  .memberHeader-content--info { display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .memberHeader-name { text-align: center; }
+  .memberHeader-blurbContainer { display: block; width: 100%; text-align: center; }
+  .memberHeader-badges { display: flex; justify-content: center; gap: 4px; flex-wrap: wrap; }
+  .pairJustifier { justify-content: space-around; }
+}
+
+/* mobile member buttons: compact, drop voz.vn link */
+@media (max-width: 480px) {
+  .memberHeader-buttons .buttonGroup { gap: 4px; }
+  .memberHeader-buttons .button { padding: 4px 8px; font-size: calc(13px * var(--ui-scale)); }
+  .memberHeader-buttons a[href^="https://voz.vn"] { display: none; }
+}
+
+/* mobile member buttons: one row, scroll */
+@media (max-width: 480px) {
+  .memberHeader-buttons .buttonGroup { flex-wrap: nowrap; overflow-x: auto; gap: 4px; }
+  .memberHeader-buttons .buttonGroup .buttonGroup-buttonWrapper { display: inline-flex; gap: 4px; flex: 0 0 auto; }
+  .memberHeader-buttons .button { white-space: nowrap; flex: 0 0 auto; }
+}
+
+/* memberHeader buttons — voz layout: dm left, buttonGroup-buttonWrapper right, fused */
+.memberHeader-buttons { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.memberHeader-buttons .buttonGroup { display: contents; }
+.memberHeader-buttons .buttonGroup-buttonWrapper { display: inline-flex; flex: 0 0 auto; }
+.memberHeader-buttons .buttonGroup-buttonWrapper .button + .button { border-left: 0; }
+.memberHeader-buttons .buttonGroup-buttonWrapper .button:first-child { border-radius: 4px 0 0 4px; }
+.memberHeader-buttons .buttonGroup-buttonWrapper .button:last-child { border-radius: 0 4px 4px 0; }
+.memberHeader-buttons a[href^="https://voz.vn"] { display: none; }
+
+/* tighter fused member buttons on small screens */
+@media (max-width: 480px) {
+  .memberHeader-buttons .buttonGroup-buttonWrapper .button { padding: 4px 7px; font-size: calc(12px * var(--ui-scale)); }
+  .memberHeader-buttons > .buttonGroup > .button { padding: 4px 8px; font-size: calc(12px * var(--ui-scale)); }
+}
+
+/* memberHeader buttons — exact voz layout: block container, inline-block fused groups, floated buttons */
+.memberHeader-buttons { display: block; }
+.memberHeader-buttons .buttonGroup { display: inline-block; vertical-align: top; }
+.memberHeader-buttons .buttonGroup + .buttonGroup { margin-left: 10px; }
+.memberHeader-buttons .buttonGroup .button { float: left; padding: 6px 11px; font-size: calc(14px * var(--ui-scale)); }
+.memberHeader-buttons .buttonGroup-buttonWrapper { display: block; float: left; }
+.memberHeader-buttons .buttonGroup-buttonWrapper .button { float: left; }
+.memberHeader-buttons .buttonGroup-buttonWrapper .button + .button { border-left: 0; }
+.memberHeader-buttons .buttonGroup-buttonWrapper .button:first-child { border-radius: 4px 0 0 4px; }
+.memberHeader-buttons .buttonGroup-buttonWrapper .button:last-child { border-radius: 0 4px 4px 0; }
+.memberHeader-buttons a[href^="https://voz.vn"] { display: none; }
+
+/* fused borders between first button and wrapper button inside a group */
+.memberHeader-buttons .buttonGroup > .button { border-radius: 4px 0 0 4px; }
+.memberHeader-buttons .buttonGroup-buttonWrapper > .button:first-child { border-radius: 0; border-left: 0; }
+.memberHeader-buttons .buttonGroup-buttonWrapper > .button:last-child { border-radius: 0 4px 4px 0; }
+
+/* prevent wrap inside a memberHeader button group */
+.memberHeader-buttons .buttonGroup { display: inline-flex; }
+.memberHeader-buttons .buttonGroup .button, .memberHeader-buttons .buttonGroup-buttonWrapper { float: none; }
+
+/* voz exact: memberHeader-main pale blue, tabHeader voz blue, button bg */
+.memberHeader-main { background: rgb(223, 231, 246); }
+.memberHeader-avatar .avatar { display: inline-flex; }
+.block-tabHeader { background: rgb(35, 73, 123); border-bottom: 0; }
+.block-tabHeader .tabs-tab { color: rgb(235, 241, 249); padding: 6px 10px; }
+.block-tabHeader .tabs-tab:hover { color: #fff; }
+.block-tabHeader .tabs-tab.is-active { color: #fff; border-bottom-color: rgb(255, 255, 255); }
+.memberHeader-buttons .button { background: rgb(244, 245, 245); }
+.memberHeader-buttons .buttonGroup-buttonWrapper .button { background: rgb(244, 245, 245); }
+/* voz keeps its own ink on member-header buttons; don't let --link flip them in dark mode. */
+.memberHeader-buttons .button,
+.memberHeader-buttons .buttonGroup-buttonWrapper .button { color: rgb(35, 73, 123); border-color: rgb(180, 185, 190); }
+.memberHeader-buttons .button:hover,
+.memberHeader-buttons .buttonGroup-buttonWrapper .button:hover { background: rgb(224, 226, 229); color: rgb(35, 73, 123); border-color: rgb(180, 185, 190); }
+
+/* member buttons: no wrap, no scroll — voz exact */
+.memberHeader-buttons .button { white-space: nowrap; }
+.memberHeader-buttons { overflow-x: visible; }
+
+/* voz mobile member header breakpoint: 650 not 480 */
+@media (max-width: 650px) {
+  .memberHeader-avatar { position: static; display: block; text-align: center; padding: 10px 10px 0; }
+  .memberHeader-avatar .avatar--l { width: 96px; height: 96px; }
+  .memberHeader-avatar .avatar-fallback { font-size: 58px; }
+  .memberHeader-content { padding: 0 10px 10px; }
+}
+
+/* member buttons compact on narrow screens — keep one line */
+@media (max-width: 650px) {
+  .memberHeader-buttons .button { padding: 4px 8px; font-size: calc(13px * var(--ui-scale)); }
+  .memberHeader-buttons .buttonGroup + .buttonGroup { margin-left: 6px; }
+}
+
+/* override with matching specificity */
+@media (max-width: 650px) {
+  .memberHeader-buttons .buttonGroup .button,
+  .memberHeader-buttons .buttonGroup-buttonWrapper .button { padding: 4px 8px; font-size: calc(13px * var(--ui-scale)); }
+  .memberHeader-buttons .buttonGroup + .buttonGroup { margin-left: 6px; }
+}
+
+/* pairJustifier: voz uses space-between */
+.pairJustifier { justify-content: space-between; }
+
+/* mobile: hide orphan user cell — attribution row inside main already has avatar+name */
+@media (max-width: 620px) {
+  .message--simple:not(.message--quickReply) .message-cell--user { display: none; }
+  .message--simple:not(.message--quickReply) .message-inner { display: block; }
+}
+
+/* thin divider between profile posts (not inside comments) */
+.message--simple:not(.message--quickReply) + .message--simple:not(.message--quickReply) { border-top: 1px solid var(--border, #d5d6db); }
+
+/* mobile: hide composer user cell too — matches voz where only the input strip renders */
+@media (max-width: 620px) {
+  .message--quickReply .message-cell--user { display: none; }
+  .message--quickReply .message-inner { display: block; }
+}
+
+/* pairJustifier: equal columns so each stat centres in its third (voz) */
+.pairJustifier > .pairs { flex: 1 1 0; }
+
+/* memberHeader-buttons: center row on narrow screens */
+@media (max-width: 650px) {
+  .memberHeader-buttons { display: flex; justify-content: center; }
+}
+
+/* mobile member buttons: equal columns, each group centred */
+@media (max-width: 650px) {
+  .memberHeader-buttons { display: flex; justify-content: stretch; }
+  .memberHeader-buttons .buttonGroup { flex: 1 1 0; display: flex; justify-content: center; }
+  .memberHeader-buttons .buttonGroup + .buttonGroup { margin-left: 4px; }
+  .memberHeader-buttons .button { flex: 1 1 auto; justify-content: center; text-align: center; }
+}
+
+/* fix overflow — groups share space evenly but buttons keep natural width */
+@media (max-width: 650px) {
+  .memberHeader-buttons .buttonGroup { flex: 1 1 0; }
+  .memberHeader-buttons .button { flex: 0 0 auto; }
+}
+
+/* flatten buttonGroups so every .button shares equal space */
+@media (max-width: 650px) {
+  .memberHeader-buttons { display: flex; }
+  .memberHeader-buttons .buttonGroup,
+  .memberHeader-buttons .buttonGroup-buttonWrapper { display: contents; }
+  .memberHeader-buttons .button { flex: 1 1 0; margin: 0 2px; min-width: 0; justify-content: center; }
+  .memberHeader-buttons .buttonGroup + .buttonGroup { margin-left: 0; }
+}
+
+/* fused borders between equal-width mobile buttons */
+@media (max-width: 650px) {
+  .memberHeader-buttons .button { margin: 0; border-radius: 0; }
+  .memberHeader-buttons .button + .button { border-left: 0; }
+  .memberHeader-buttons .buttonGroup > .button:first-child { border-radius: 4px 0 0 4px; }
+  .memberHeader-buttons .buttonGroup-buttonWrapper > .button:last-child,
+  .memberHeader-buttons .buttonGroup > .button:last-child { border-radius: 0 4px 4px 0; }
+  .memberHeader-buttons .buttonGroup:first-of-type > .button:first-child { border-radius: 4px 0 0 4px; }
+  .memberHeader-buttons .buttonGroup:last-of-type .buttonGroup-buttonWrapper > .button:last-child { border-radius: 0 4px 4px 0; }
+}
+
+/* mobile member buttons: separate rounded boxes, not fused */
+@media (max-width: 650px) {
+  .memberHeader-buttons .button { border-radius: 4px; border: 0.66px solid rgb(213,216,219); margin: 0 2px; }
+  .memberHeader-buttons .button + .button { border-left: 0.66px solid rgb(213,216,219); }
+}
+
+/* mobile member buttons: crisper border */
+@media (max-width: 650px) {
+  .memberHeader-buttons .button { border: 1px solid rgb(180,185,190); }
+}
+
+/* leave 1px so last button's right border isn't sub-pixel clipped */
+@media (max-width: 650px) {
+  .memberHeader-buttons { padding-right: 1px; }
+}
+
+/* desktop: left-cell avatar is the only one — hide inline attribution avatar */
+@media (min-width: 621px) {
+  .message--simple .message-attribution .avatar--xxs { display: none; }
+}

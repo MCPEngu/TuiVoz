@@ -78,6 +78,18 @@ window.addEventListener('voz:format-change', async () => {
   if (location.hash.startsWith('#/')) {
     history.replaceState({ ...(history.state || {}) }, '', location.hash.slice(1));
   }
+  // /voz/app-config advertises a maintenance gate; a 404 means the custom router is not deployed — tolerate it.
+  try {
+    const { api } = await import('./api.js');
+    const cfg = await api.appConfig();
+    const m = cfg && cfg.maintenance;
+    if (m && m.active) {
+      const host = document.getElementById('app');
+      host.innerHTML = '<div class="block"><div class="block-header">Bảo trì</div><div class="block-body block-body--pad"><p></p></div></div>';
+      host.querySelector('p').textContent = m.message || 'voz.vn đang bảo trì, thử lại sau.';
+    }
+    document.dispatchEvent(new CustomEvent('voz:app-config', { detail: cfg }));
+  } catch { /* 404 tolerated: endpoint absent on this deployment */ }
   await loadSession();
   await route();
 })();

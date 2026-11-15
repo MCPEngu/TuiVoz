@@ -12,7 +12,7 @@ import { viewThread } from '../views/thread.js';
 import { viewSearch } from '../views/search.js';
 import { viewDmList, viewDm, viewNewDm } from '../views/dm.js';
 import { viewAlerts, viewBookmarks, viewWatched } from '../views/lists.js';
-import { viewUser } from '../views/user.js';
+import { viewUser, viewProfilePost } from '../views/user.js';
 import { viewLogin } from '../views/login.js';
 import { viewCompose } from '../views/compose.js';
 import { viewSettings } from '../views/settings.js';
@@ -54,6 +54,8 @@ export async function route() {
   const { segments, params, page } = parsePath();
   const head = segments[0] || '';
   teardownInfiniteScroll({ keepSentinel: true });
+  // Leaving the thread screen fires the queued `read` signal (see views/thread.js).
+  if (head !== 't') window.dispatchEvent(new Event('voz:leave-thread'));
 
   try {
     if (!head) return await viewHome();
@@ -99,7 +101,21 @@ export async function route() {
     if (head === 'alerts') return await viewAlerts(page);
     if (head === 'bookmarks') return await viewBookmarks(page);
     if (head === 'watched') return await viewWatched(page);
-    if (head === 'u') return await viewUser(idFromSegment(segments[1]));
+    if (head === 'u') return await viewUser(idFromSegment(segments[1]), params, segments[2] || '');
+    if (head === 'pp' && /^\d+$/.test(segments[1] || '')) return await viewProfilePost(Number(segments[1]), page);
+    // voz URLs: /profile-posts/{id}/ → single post; /profile-posts/comments/{id}/ → comment, resolves to parent post.
+    if (head === 'profile-posts') {
+      if (segments[1] === 'comments' && /^\d+$/.test(segments[2] || '')) {
+        const commentId = Number(segments[2]);
+        try {
+          const res = await api.profilePostComment(commentId);
+          const postId = res?.comment?.profile_post_id || res?.profile_post_comment?.profile_post_id;
+          if (postId) return await viewProfilePost(postId, page, `profile-post-comment-${commentId}`);
+        } catch { /* fall through */ }
+        return navigate('/alerts', { replace: true });
+      }
+      if (/^\d+$/.test(segments[1] || '')) return await viewProfilePost(Number(segments[1]), page);
+    }
     if (head === 'cai-dat-tuivoz') return viewSettings();
     if (head === 'login') return await viewLogin();
     setTitle('Oops! We ran into some problems.');
