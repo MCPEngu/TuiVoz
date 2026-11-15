@@ -12,6 +12,7 @@ import { setThreadTitle } from '../ui/title.js';
 import { loading, errorBox, toast } from '../ui/feedback.js';
 import { pagination, wirePageJump, wireScrollArm } from '../ui/pagination.js';
 import { postHtml } from '../ui/post.js';
+import { wireThreadRowBans } from '../ui/threadRow.js';
 import { hydrateReactionLists, reactionBar, reactionSummary, invalidateReactionUsers } from '../ui/reactions.js';
 import { editorHtml, wireEditor, clearEditorDraft } from '../ui/editor.js';
 import { registerAttachments, clearAttachments } from '../lib/attachments.js';
@@ -217,6 +218,7 @@ export async function viewThread(threadId, page, focusPost) {
 
     wireEditor(app);
     wireMemberTooltips(app, posts.map((post) => post.User));
+    wireThreadRowBans(document.getElementById('post-list'), posts.map((post) => post.User));
     wireThreadActions(threadId, posts, thread, res.pagination ? res.pagination.current_page : 1);
     wireModeration(thread, () => navigate(threadPath(thread), { replace: true }));
     wireSignatureToggles(app);
@@ -237,6 +239,7 @@ export async function viewThread(threadId, page, focusPost) {
         if (!list || !more.length) return 0;
         registerAttachments(more);
         list.insertAdjacentHTML('beforeend', more.map((post) => postHtml(post, thread, p)).join(''));
+        wireThreadRowBans(list, more.map((post) => post.User));
         wireSignatureToggles(list);
         hydrateReactionLists(list);
         wireMemberTooltips(list, more.map((post) => post.User));

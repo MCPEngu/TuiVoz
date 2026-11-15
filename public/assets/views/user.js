@@ -15,7 +15,8 @@ import { avatarMarkup } from '../lib/avatar.js';
 import { userBadges } from '../lib/userBadges.js';
 import { sanitizeHtml, bbcodeToPlain } from '../lib/bbcode.js';
 import { signatureHtml } from '../lib/signature.js';
-import { memberContentRow, memberPostRow, memberActivityRow, profilePostCommentRow } from '../ui/threadRow.js';
+import { memberContentRow, memberPostRow, memberActivityRow, profilePostCommentRow, wireThreadRowBans } from '../ui/threadRow.js';
+import { applyBannedMark, bannedFeatureOn } from '../lib/bannedUsers.js';
 import { wireMemberTooltips } from '../ui/memberTooltip.js';
 import { wireEditor, clearEditorDraft } from '../ui/editor.js';
 import { registerAttachments } from '../lib/attachments.js';
@@ -55,7 +56,7 @@ function memberHeaderHtml(user, tab) {
           </span>
         </span>
         <div class="memberHeader-content memberHeader-content--info">
-          <h1 class="memberHeader-name"><span class="memberHeader-nameWrapper"><span class="username">${esc(user.username)}</span></span></h1>
+          <h1 class="memberHeader-name"><span class="memberHeader-nameWrapper"><span class="username" data-member-id="${Number(user.user_id)}">${esc(user.username)}</span></span></h1>
           <div class="memberHeader-blurbContainer">
             ${user.user_title ? `<div class="memberHeader-blurb"><span class="userTitle">${esc(user.user_title)}</span>${user.location ? ` <span aria-hidden="true">·</span> Từ ${esc(user.location)}` : ''}</div>` : user.location ? `<div class="memberHeader-blurb">Từ ${esc(user.location)}</div>` : ''}
             ${(user.banners || []).length ? `<div class="memberHeader-blurb memberHeader-badges">${userBadges(user)}</div>` : ''}
@@ -106,7 +107,7 @@ function commentHtml(comment) {
           <div class="comment-main">
             <div class="comment-content">
               <div class="comment-contentWrapper">
-                <a href="${userPath(author)}" class="username comment-user">${esc(author.username)}</a>
+                <a href="${userPath(author)}" class="username comment-user" data-member-id="${Number(author.user_id)}">${esc(author.username)}</a>
                 <article class="comment-body"><div class="bbWrapper">${sanitizeHtml(comment.message_parsed || esc(comment.message || ''), comment.message)}</div></article>
               </div>
             </div>
@@ -146,7 +147,7 @@ function profilePostMessageHtml(post) {
                 <ul class="listInline listInline--bullet">
                   <li class="message-attribution-user">
                     <a href="${userPath(author)}" class="avatar avatar--xxs">${avatarMarkup(author, 's')}</a>
-                    <h4 class="attribution"><a href="${userPath(author)}" class="username">${esc(author.username)}</a></h4>
+                    <h4 class="attribution"><a href="${userPath(author)}" class="username" data-member-id="${Number(author.user_id)}">${esc(author.username)}</a></h4>
                   </li>
                   <li><a href="/pp/${post.profile_post_id}" class="u-concealed"><time title="${esc(fullDate(post.post_date))}">${postDate(post.post_date, 'thread')}</time></a></li>
                 </ul>
@@ -328,6 +329,12 @@ export async function viewUser(userId, params = new URLSearchParams(), tabSlug =
     wireEditor(app);
     wireWallForm(user);
     wireMemberTooltips(app, [user]);
+    wireThreadRowBans(app, [user]);
+    // "smart" mode only resolves a member the reader opened; the profile header is exactly that.
+    if (bannedFeatureOn()) {
+      const names = [...app.querySelectorAll('.memberHeader-nameWrapper [class*="username"]')];
+      applyBannedMark(names, user.user_id).catch(() => {});
+    }
   } catch (err) {
     app.innerHTML = errorBox(err);
   }
@@ -355,6 +362,7 @@ export async function viewProfilePost(postId, page = 1, anchorId = '') {
       </div>`;
     wirePageJump((p) => `/pp/${postId}?page=${p}`);
     wireMemberTooltips(app, [post.User, owner, ...comments.map((c) => c.User).filter(Boolean)]);
+    wireThreadRowBans(app, [post.User, owner, ...comments.map((c) => c.User).filter(Boolean)]);
     if (anchorId) document.getElementById(anchorId)?.scrollIntoView({ block: 'start' });
   } catch (err) {
     app.innerHTML = errorBox(err);

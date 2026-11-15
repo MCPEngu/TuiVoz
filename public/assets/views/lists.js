@@ -9,7 +9,7 @@ import { setTitle } from '../ui/title.js';
 import { loading, errorBox } from '../ui/feedback.js';
 import { pagination, wirePageJump } from '../ui/pagination.js';
 import { requireLogin } from '../ui/session.js';
-import { threadRow, postRow } from '../ui/threadRow.js';
+import { threadRow, postRow, wireThreadRowBans } from '../ui/threadRow.js';
 import { avatarMarkup } from '../lib/avatar.js';
 import { alertTextMarkup } from '../ui/alertMarkup.js';
 
@@ -102,6 +102,7 @@ export async function viewWatched(page) {
         }
         ${pagination(res.pagination, (p) => withPage('/watched', p))}
       </div>`;
+    wireThreadRowBans(document.querySelector('.structItemContainer'), threads);
     wirePageJump((p) => withPage('/watched', p));
   } catch (err) {
     app.innerHTML = errorBox(err);

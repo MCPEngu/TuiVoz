@@ -8,7 +8,7 @@ import { setActiveNav, setBreadcrumbs } from '../ui/chrome.js';
 import { setTitle } from '../ui/title.js';
 import { loading, errorBox } from '../ui/feedback.js';
 import { pagination, wirePageJump } from '../ui/pagination.js';
-import { postRow } from '../ui/threadRow.js';
+import { postRow, wireThreadRowBans } from '../ui/threadRow.js';
 
 export async function viewSearch(query, searchId, page) {
   setActiveNav('search');
@@ -79,6 +79,7 @@ async function runSearch(query, page, searchId, member = '') {
         ${pagination(res.pagination, resultHref)}
       </div>`;
     wirePageJump(resultHref);
+    wireThreadRowBans(document.querySelector('.structItemContainer'));
   } catch (err) {
     app.innerHTML = errorBox(err);
   }

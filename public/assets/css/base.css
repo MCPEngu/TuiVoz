@@ -197,6 +197,10 @@ body {
 a { color: var(--link); text-decoration: none; }
 a:hover { color: var(--link-hover); }
 
+/* Banned ("KIA") accounts: voz strikes the name through. `!important` because every contextual link rule
+   (.structItem-minor a, .contentRow-minor--hideLinks a, …) resets text-decoration at higher specificity. */
+.username--banned { text-decoration: line-through !important; }
+
 img { max-width: 100%; }
 
 /* ---------- utilities ---------- */

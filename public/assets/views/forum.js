@@ -8,7 +8,7 @@ import { setActiveNav, setBreadcrumbs } from '../ui/chrome.js';
 import { setTitle, setBrandTitle } from '../ui/title.js';
 import { loading, errorBox } from '../ui/feedback.js';
 import { pagination, wirePageJump, wireScrollArm } from '../ui/pagination.js';
-import { threadRow } from '../ui/threadRow.js';
+import { threadRow, wireThreadRowBans } from '../ui/threadRow.js';
 import { nodeTree, subForumBlock } from '../ui/forumNodes.js';
 import { mountInfiniteScroll } from '../ui/infiniteScroll.js';
 
@@ -66,6 +66,7 @@ export async function viewForum(nodeId, page) {
       </div>
       <div class="block-outer" id="pager-slot">${pagination(threadsRes.pagination, (p) => withPage(forumPath(forum), p))}</div>`;
     const href = (p) => withPage(forumPath(forum), p);
+    wireThreadRowBans(document.getElementById('thread-rows'), [...sticky, ...threads]);
     wirePageJump(href);
     wireScrollArm();
     mountInfiniteScroll({
@@ -88,6 +89,7 @@ function appendThreadRows(containerId, threads) {
   const group = container.querySelector('.structItemContainer-group:not(.structItemContainer-group--sticky)');
   if (!group) return 0;
   group.insertAdjacentHTML('beforeend', threads.map((t) => threadRow(t)).join(''));
+  wireThreadRowBans(group, threads);
   return threads.length;
 }
 
@@ -122,6 +124,7 @@ export async function viewSearchForum(nodeId, page) {
       </div>
       <div class="block-outer" id="pager-slot">${pagination(threadsRes.pagination, (p) => withPage(searchForumPath(node), p))}</div>`;
     const href = (p) => withPage(searchForumPath(node), p);
+    wireThreadRowBans(document.getElementById('thread-rows'), threads);
     wirePageJump(href);
     wireScrollArm();
     mountInfiniteScroll({
@@ -136,6 +139,7 @@ export async function viewSearchForum(nodeId, page) {
         const rows = (res.threads || []).filter((t) => !t.sticky);
         if (!group || !rows.length) return 0;
         group.insertAdjacentHTML('beforeend', rows.map((t) => threadRow(t, { showForum: true })).join(''));
+        wireThreadRowBans(group, rows);
         return rows.length;
       },
     });
@@ -160,6 +164,7 @@ export async function viewNewThreads(page) {
         </div>
         ${pagination(res.pagination, (p) => withPage('/new', p))}
       </div>`;
+    wireThreadRowBans(document.querySelector('.structItemContainer'), threads);
     wirePageJump((p) => withPage('/new', p));
   } catch (err) {
     app.innerHTML = errorBox(err);

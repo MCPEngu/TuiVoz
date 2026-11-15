@@ -73,6 +73,23 @@ window.addEventListener('voz:format-change', async () => {
   window.scrollTo({ top });
 });
 
+// "Hiển thị thành viên bị ban" is decided while rendering. Turning it on (or switching between smart/all)
+// needs a redraw so the wiring runs again; turning it off only has to drop the strikethroughs already on screen.
+// The import path must be absolute: a relative specifier inside a listener resolves against the current page URL,
+// and `window` is the dispatch target because CustomEvent does not bubble from `document`.
+window.addEventListener('voz:banned-users-change', async (event) => {
+  const { clearBannedMarks } = await import('/assets/lib/bannedUsers.js');
+  const mode = event.detail && event.detail.mode;
+  if (!mode || mode === 'off') {
+    clearBannedMarks(document);
+    return;
+  }
+  if (location.pathname.startsWith('/cai-dat-tuivoz')) return;
+  const top = window.scrollY;
+  await route();
+  window.scrollTo({ top });
+});
+
 (async function boot() {
   // Legacy hash URLs (#/t/123) are rewritten to the path form.
   if (location.hash.startsWith('#/')) {

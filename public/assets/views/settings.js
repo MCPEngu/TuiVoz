@@ -10,7 +10,8 @@ import {
   loadSettings, addShortcut, updateShortcut, removeShortcut, moveShortcut,
   exportSettingsJson, importSettingsJson, setInfiniteScroll,
   SCROLL_MODES, SCROLL_LABELS,
-  setTheme, setFont, setFontScale, getFontScale, setImageDownload, setPostScreenshot, setStaticAvatars,
+  setTheme, setFont, setFontScale, getFontScale, setImageDownload, setPostScreenshot, setStaticAvatars, setBannedUsers,
+  BANNED_USER_MODES, BANNED_USERS_LABELS, BANNED_USERS_HELP,
   setFullNumbers, FULL_NUMBERS_MODES, FULL_NUMBERS_LABELS,
   THEME_MODES, THEME_LABELS, FONTS, FONT_LABELS,
   FONT_SCALE_MIN, FONT_SCALE_MAX, FONT_SCALE_STEP,
@@ -180,7 +181,7 @@ function tabsHtml(active) {
 }
 
 function settingsHtml(active = settingsTabFromHash()) {
-  const { navShortcuts, infiniteScroll, theme, font, postSize, uiSize, imageDownload, postScreenshot, staticAvatars, fullNumbers } = loadSettings();
+  const { navShortcuts, infiniteScroll, theme, font, postSize, uiSize, imageDownload, postScreenshot, staticAvatars, bannedUsers, fullNumbers } = loadSettings();
   const albums = getAlbums();
   return `<div class="block settings-block">
       <h1 class="block-header">Cài đặt</h1>
@@ -230,6 +231,10 @@ function settingsHtml(active = settingsTabFromHash()) {
             </span>
             <input type="checkbox" id="static-avatars"${staticAvatars ? ' checked' : ''}>
           </label>
+          <h3 class="settings-subhead">Thành viên bị ban</h3>
+          <p class="formHint">Gạch ngang tên nick đã bị ban.</p>
+          ${optionCards('banned-users', BANNED_USER_MODES, BANNED_USERS_LABELS, BANNED_USERS_HELP, bannedUsers)}
+          <p class="settings-note settings-note--warn">Bật mục này khiến TuiVoz gọi thêm một request cho mỗi thành viên để hỏi voz.vn. Bật “Luôn hiển thị” sẽ gọi nhiều hơn hẳn và rất dễ bị voz.vn giới hạn lượt gọi (429) — nếu bị chặn, TuiVoz sẽ tạm dừng kiểm tra và báo bạn thử lại sau. “Chế độ thông minh” là lựa chọn an toàn nhất.</p>
           <h3 class="settings-subhead">Cuộn trang liên tục</h3>
           <p class="formHint">Áp dụng cho danh sách chủ đề và trong chủ đề: khi cuộn tới cuối trang, trang kế tiếp được nối thêm vào bên dưới thay vì phải bấm số trang.</p>
           ${optionCards('infinite-scroll', SCROLL_MODES, SCROLL_LABELS, SCROLL_HELP, infiniteScroll)}
@@ -881,6 +886,13 @@ export function viewSettings() {
     const enabled = event.currentTarget.checked;
     setStaticAvatars(enabled);
     toast(`Tắt ảnh động ảnh đại diện: ${enabled ? 'Bật' : 'Tắt'}`);
+  });
+  wireOptionGroup('banned-users', (value) => {
+    setBannedUsers(value);
+    toast(`Thành viên bị ban: ${BANNED_USERS_LABELS[value]}`);
+    // The strike is applied while rendering, so the current page has to be redrawn. Dispatch on `window`:
+    // CustomEvent does not bubble, so a `document` dispatch never reaches the app listener.
+    window.dispatchEvent(new CustomEvent('voz:banned-users-change', { detail: { mode: value } }));
   });
   wireOptionGroup('infinite-scroll', (value) => {
     setInfiniteScroll(value);
