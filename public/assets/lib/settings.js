@@ -49,15 +49,14 @@ export const emptySettings = () => ({
 });
 
 // Colour scheme for the content area; the chrome keeps its dark styling in both modes.
-//   auto — follow the OS and keep following it; light / dark — fixed; catppuccin-* — fixed palettes
-//   that resolve to light/dark for the shared rules and re-point the tokens by data-theme-mode.
-export const THEME_MODES = ['auto', 'light', 'dark', 'catppuccin-latte', 'catppuccin-mocha'];
+//   auto — follow the OS and keep following it; light / dark — fixed; catppuccin-mocha — a fixed
+//   palette that resolves to dark for the shared rules and re-points the tokens by data-theme-mode.
+export const THEME_MODES = ['auto', 'light', 'dark', 'catppuccin-mocha'];
 export const THEME_DEFAULT = 'auto';
 export const THEME_LABELS = {
   auto: 'Tự động theo hệ thống',
   light: 'Sáng',
   dark: 'Tối',
-  'catppuccin-latte': 'Catppuccin Latte',
   'catppuccin-mocha': 'Catppuccin Mocha',
 };
 

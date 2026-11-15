@@ -45,14 +45,6 @@
 
 /* Prefix labels are hardcoded voz colours in avatar.css; Catppuccin re-tints them with its own
    accents — coloured text on a soft tint of the same hue. */
-:root[data-theme-mode="catppuccin-latte"] .label--red { color: #d20f39; background: rgba(210, 15, 57, .12); border-color: rgba(210, 15, 57, .45); }
-:root[data-theme-mode="catppuccin-latte"] .label--green { color: #40a02b; background: rgba(64, 160, 43, .12); border-color: rgba(64, 160, 43, .45); }
-:root[data-theme-mode="catppuccin-latte"] .label--royalBlue { color: #1e66f5; background: rgba(30, 102, 245, .12); border-color: rgba(30, 102, 245, .45); }
-:root[data-theme-mode="catppuccin-latte"] .label--orange,
-:root[data-theme-mode="catppuccin-latte"] .label--accent { color: #fe640b; background: rgba(254, 100, 11, .12); border-color: rgba(254, 100, 11, .45); }
-:root[data-theme-mode="catppuccin-latte"] .label--olive { color: #df8e1d; background: rgba(223, 142, 29, .12); border-color: rgba(223, 142, 29, .45); }
-:root[data-theme-mode="catppuccin-latte"] .label--gray { color: #6c6f85; background: rgba(108, 111, 133, .12); border-color: rgba(108, 111, 133, .45); }
-
 :root[data-theme-mode="catppuccin-mocha"] .label--red { color: #f38ba8; background: rgba(243, 139, 168, .15); border-color: rgba(243, 139, 168, .45); }
 :root[data-theme-mode="catppuccin-mocha"] .label--green { color: #a6e3a1; background: rgba(166, 227, 161, .15); border-color: rgba(166, 227, 161, .45); }
 :root[data-theme-mode="catppuccin-mocha"] .label--royalBlue { color: #89b4fa; background: rgba(137, 180, 250, .15); border-color: rgba(137, 180, 250, .45); }
@@ -63,3 +55,16 @@
 
 /* Sticky thread titles use a hardcoded orange in dark mode; Mocha gets its peach. */
 :root[data-theme-mode="catppuccin-mocha"] .structItemContainer-group--sticky .structItem-title a { color: #fab387; }
+
+/* The thread-title header (post.css) and the screenshot band that mirrors it draw their text straight
+   on the page — no blue fill — so they keep Mocha's light text instead of the dark header fg. */
+:root[data-theme-mode="catppuccin-mocha"] .block--messages > .block-header,
+:root[data-theme-mode="catppuccin-mocha"] .screenshot-title { color: var(--text); }
+
+/* Chips that fill with the header blue but paint their glyph with --on-dark (white, frozen for the
+   dark chrome) need the dark-on-accent pair instead, like the editor submit button. */
+:root[data-theme-mode="catppuccin-mocha"] .node-icon,
+:root[data-theme-mode="catppuccin-mocha"] .pageNav span.current,
+:root[data-theme-mode="catppuccin-mocha"] .pageNav-scrollBtn.is-active,
+:root[data-theme-mode="catppuccin-mocha"] .infinite-stop,
+:root[data-theme-mode="catppuccin-mocha"] .button--primary { color: var(--on-accent); }

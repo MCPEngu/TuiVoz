@@ -24,7 +24,7 @@
   (function () {
     try {
       var s = JSON.parse(localStorage.getItem('voz-settings:v1') || '{}');
-      var mode = ['auto', 'light', 'dark', 'catppuccin-latte', 'catppuccin-mocha'].indexOf(s.theme) >= 0 ? s.theme : 'auto';
+      var mode = ['auto', 'light', 'dark', 'catppuccin-mocha'].indexOf(s.theme) >= 0 ? s.theme : 'auto';
       var dark = mode === 'dark' || mode === 'catppuccin-mocha' ||
         (mode === 'auto' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
       var r = document.documentElement;

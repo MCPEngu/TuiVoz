@@ -177,61 +177,6 @@
   --node-icon: #7d8590;
 }
 
-/* Catppuccin Latte — light palette. Resolves to data-theme="light"; these overrides re-point the
-   content tokens. Chrome tokens stay frozen like the stock light theme. Placed after both stock
-   palettes: equal specificity, later wins. */
-:root[data-theme-mode="catppuccin-latte"] {
-  --block-header-bg: #1e66f5;
-  --block-header-hover: #1a5ad6;
-  --block-header-fg: #eff1f5;
-  --link: #1e66f5;
-  --link-hover: #fe640b;
-  --accent-text: #fe640b;
-  --text: #4c4f69;
-  --dimmed: #6c6f85;
-  --dimmed-2: #5c5f77;
-  --content-bg: #eff1f5;
-  --content-bg-alt: #e6e9ef;
-  --border: #ccd0da;
-  --border-faint: #dce0e8;
-  --quote-bg: #e6e9ef;
-  --quote-border: #fe640b;
-
-  --surface: #eff1f5;
-  --surface-sunken: #e6e9ef;
-  --surface-raised: #ccd0da;
-  --surface-hover: #e6e9ef;
-  --surface-accent: #dce7fd;
-  --surface-accent-hover: #c9dbfc;
-  --surface-tint: #dce0e8;
-  --surface-code: #e6e9ef;
-  --surface-editor-panel: #e6e9ef;
-  --surface-quote: #e6e9ef;
-  --editor-bg: #e6e9ef;
-  --editor-more-bg: #dce0e8;
-  --editor-submit-bg: #1e66f5;
-  --editor-submit-hover: #1a5ad6;
-  --editor-button-fg: rgba(76, 79, 105, .85);
-  --editor-button-hover-bg: rgba(30, 102, 245, .15);
-  --border-code: #acb0be;
-  --border-atomic: #9ca0b0;
-
-  --unread-bg: #ffefe5;
-  --unread-bg-strong: #ffe4d1;
-  --info-bg: #e5edff;
-  --danger-text: #d20f39;
-  --danger-text-strong: #b00c30;
-  --danger-bg: #fbe5ea;
-  --danger-border: #eba9b8;
-  --success-text: #40a02b;
-  --success-text-strong: #368624;
-  --success-bg: #e8f5e4;
-  --success-border: #aed6a5;
-
-  --focus-ring: #9cc0f7;
-  --node-icon: #8c8fa1;
-}
-
 /* Catppuccin Mocha — dark palette. Resolves to data-theme="dark", so every stock dark rule
    (media dimming, link overrides) applies; these overrides re-point the tokens on top of it. */
 :root[data-theme-mode="catppuccin-mocha"] {
@@ -258,10 +203,10 @@
   --surface: #313244;
   --surface-sunken: #181825;
   --surface-raised: #45475a;
-  --surface-hover: #313244;
+  --surface-hover: #3a3e58;
   --surface-accent: #2a3450;
   --surface-accent-hover: #334062;
-  --surface-tint: #313244;
+  --surface-tint: #3d4266;
   --surface-code: #181825;
   --surface-editor-panel: #181825;
   --surface-quote: #313244;
@@ -295,7 +240,7 @@
   --shadow-avatar: inset 0 0 0 1px rgba(255, 255, 255, .12);
   --scrim: rgba(0, 0, 0, .66);
 
-  --focus-ring: #5a76a8;
+  --focus-ring: #b4befe;
   --node-icon: #6c7086;
 }
 

@@ -12,7 +12,7 @@ const media = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark
 // re-render.
 let lastFullNumbers = null;
 
-const CATPPUCCIN_BASE = { 'catppuccin-latte': 'light', 'catppuccin-mocha': 'dark' };
+const CATPPUCCIN_BASE = { 'catppuccin-mocha': 'dark' };
 
 function resolvedTheme(mode) {
   if (mode === 'dark' || mode === 'light') return mode;
