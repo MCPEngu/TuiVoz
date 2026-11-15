@@ -30,10 +30,18 @@ export function avatarMarkup(user, size = 's') {
   const src = known
     ? urls[size] || urls.m || urls.l || urls.o || ''
     : avatarUrlById(id, size);
+  // voz pairs each avatar with a 2x source so hi-dpi screens do not upscale the small file. The bucket above the
+  // requested one is exactly double, so an `s` avatar gets `m`, an `m`/`l` gets `l`/`o`.
+  const RETINA = { xxs: 's', xs: 's', s: 'm', m: 'l', l: 'o', o: 'o' };
+  const retinaSize = RETINA[size] || 'm';
+  const retina = known
+    ? urls[retinaSize] || urls.o || urls.l || urls.m || ''
+    : avatarUrlById(id, retinaSize);
+  const srcset = retina && retina !== src ? ` srcset="${esc(retina)} 2x"` : '';
   const [bg, fg] = DYNAMIC_AVATAR[id % DYNAMIC_AVATAR.length];
   const initial = esc(((user && user.username) || '?').slice(0, 1).toUpperCase());
   const img = src
-    ? `<img class="avatar-img" src="${esc(src)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`
+    ? `<img class="avatar-img" src="${esc(src)}"${srcset} alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`
     : '';
   return `<span class="avatar-fallback" style="background:${bg};color:${fg}"><span aria-hidden="true">${initial}</span>${img}</span>`;
 }
