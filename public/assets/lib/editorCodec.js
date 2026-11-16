@@ -109,14 +109,22 @@ export function editorCodeHtml(value, preview = false) {
   return parseEditorCode(value).children.map(render).join('');
 }
 export function editorDomCode(root) {
-  // Rebuilds `=WxH` from the element's inline width/height, dropping any size already in the stored attrs.
-  // The editor's resizer writes px, so only a px width is meaningful; %/auto falls back to the original attrs.
+  // Folds the inline width/height the resizer wrote back into attributes voz.vn understands. `[IMG=W]` is not
+  // valid XenForo BBCode: the server stores it literally and auto-links the URL after it, so an edited picture
+  // turned into text. The px width alone is not a resize signal either — the editor renders the stored size into
+  // the style, so only the resizer's own marker counts.
   function sizedAttrs(node, attrs) {
+    const raw = String(attrs || '');
+    if (!node.dataset.bbResized) return raw;
     const width = parseInt(node.style?.width, 10);
-    if (!width || width < 16) return String(attrs || '').replace(/=\s*\d+(?:x\d+)?\s*/, '');
+    if (!width || width < 16) return raw;
+    const rest = raw
+      .replace(/\s*(?:size|width|height)\s*=\s*"[^"]*"/gi, '')
+      .replace(/=\s*\d+(?:x\d+)?/, '')
+      .trim();
     const height = parseInt(node.style?.height, 10);
-    const size = height && Math.abs(height - width) > 1 ? `${width}x${height}` : String(width);
-    return `=${size}`;
+    const spec = height && Math.abs(height - width) > 1 ? `size="${width}x${height}"` : `width="${width}px"`;
+    return ` ${rest ? `${rest} ` : ''}${spec}`;
   }
   function serialize(node) {
     if (node.nodeType === 3) return node.nodeValue.replace(/\u00a0/g, ' ');
