@@ -228,7 +228,7 @@ function buildSheet(threadName, postNode, width) {
   // every `:root`-scoped rule resolves exactly as it does on screen.
   const holder = document.createElement('div');
   holder.className = 'screenshot-sheet';
-  for (const name of ['theme', 'font']) {
+  for (const name of ['theme', 'themeMode', 'font']) {
     if (root.dataset[name]) holder.dataset[name] = root.dataset[name];
   }
   holder.style.width = `${width}px`;
@@ -322,6 +322,8 @@ function rasterize(node, fonts = '') {
   // above the bottom of the bitmap. The outer wrapper carries the same theme attributes as the sheet, so that
   // leftover strip is drawn in the page colour instead of the default light one.
   const theme = node.dataset.theme ? ` data-theme="${node.dataset.theme}"` : '';
+  // The Catppuccin palettes key off data-theme-mode, so the wrapper needs it too.
+  const themeMode = node.dataset.themeMode ? ` data-theme-mode="${node.dataset.themeMode}"` : '';
   const font = node.dataset.font ? ` data-font="${node.dataset.font}"` : '';
   const sheetBg = getComputedStyle(node).backgroundColor;
   const scaleVars = `--ui-scale:${getComputedStyle(node).getPropertyValue('--ui-scale') || 1};--post-scale:${getComputedStyle(node).getPropertyValue('--post-scale') || 1};`;
@@ -330,7 +332,7 @@ function rasterize(node, fonts = '') {
   const svg =
     `<svg xmlns="http://www.w3.org/2000/svg" width="${outWidth}" height="${outHeight}" viewBox="0 0 ${width} ${height}">` +
     `<foreignObject x="0" y="0" width="${width}" height="${height}">` +
-    `<div xmlns="http://www.w3.org/1999/xhtml"${theme}${font} style="width:${width}px;min-height:${height}px;${scaleVars}background:${sheetBg}">${style}${markup}</div>` +
+    `<div xmlns="http://www.w3.org/1999/xhtml"${theme}${themeMode}${font} style="width:${width}px;min-height:${height}px;${scaleVars}background:${sheetBg}">${style}${markup}</div>` +
     '</foreignObject></svg>';
 
   const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });

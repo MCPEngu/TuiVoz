@@ -177,6 +177,73 @@
   --node-icon: #7d8590;
 }
 
+/* Catppuccin Mocha — dark palette. Resolves to data-theme="dark", so every stock dark rule
+   (media dimming, link overrides) applies; these overrides re-point the tokens on top of it. */
+:root[data-theme-mode="catppuccin-mocha"] {
+  --header-bg: #11111b;
+  --nav-bg: #11111b;
+  --chrome-page-bg: #11111b;
+  --block-header-bg: #89b4fa;
+  --block-header-hover: #74a8fc;
+  --block-header-fg: #11111b;
+  --link: #89b4fa;
+  --link-hover: #fab387;
+  --accent-text: #fab387;
+  --text: #cdd6f4;
+  --dimmed: #a6adc8;
+  --dimmed-2: #bac2de;
+  --page-bg: var(--chrome-page-bg);
+  --content-bg: #1e1e2e;
+  --content-bg-alt: #181825;
+  --border: #45475a;
+  --border-faint: #313244;
+  --quote-bg: #313244;
+  --quote-border: #fab387;
+
+  --surface: #313244;
+  --surface-sunken: #181825;
+  --surface-raised: #45475a;
+  --surface-hover: #3a3e58;
+  --surface-accent: #2a3450;
+  --surface-accent-hover: #334062;
+  --surface-tint: #3d4266;
+  --surface-code: #181825;
+  --surface-editor-panel: #181825;
+  --surface-quote: #313244;
+  --editor-bg: #11111b;
+  --editor-more-bg: #0d0d16;
+  --editor-submit-bg: #89b4fa;
+  --editor-submit-hover: #74a8fc;
+  --editor-button-fg: #bac2de;
+  --editor-button-hover-bg: rgba(137, 180, 250, .18);
+  --border-code: #585b70;
+  --border-atomic: #6c7086;
+
+  --unread-bg: #3a3040;
+  --unread-bg-strong: #453642;
+  --info-bg: #27324a;
+  --danger-text: #f38ba8;
+  --danger-text-strong: #f17499;
+  --danger-bg: #402836;
+  --danger-border: #7a4257;
+  --success-text: #a6e3a1;
+  --success-text-strong: #a6e3a1;
+  --success-bg: #273a2c;
+  --success-border: #46614a;
+
+  --chip-bg: #313244;
+  --on-accent: #11111b;
+  --shadow-menu: 0 6px 20px rgba(0, 0, 0, .55);
+  --shadow-card: 0 4px 16px rgba(0, 0, 0, .55);
+  --shadow-pop: 0 3px 7px rgba(0, 0, 0, .45);
+  --shadow-fab: 0 2px 8px rgba(0, 0, 0, .55);
+  --shadow-avatar: inset 0 0 0 1px rgba(255, 255, 255, .12);
+  --scrim: rgba(0, 0, 0, .66);
+
+  --focus-ring: #b4befe;
+  --node-icon: #6c7086;
+}
+
 * { box-sizing: border-box; }
 
 html { background: var(--page-bg); }

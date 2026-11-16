@@ -38,6 +38,7 @@ const THEME_HELP = {
   auto: 'Theo thiết lập sáng/tối của hệ điều hành và đổi theo khi bạn đổi cài đặt hệ thống.',
   light: 'Luôn dùng bảng màu sáng.',
   dark: 'Luôn dùng bảng màu tối cho vùng nội dung. Thanh trên cùng và thanh điều hướng giữ nguyên.',
+  'catppuccin-mocha': 'Bảng màu tối Catppuccin Mocha.',
 };
 
 const FONT_HELP = {
