@@ -139,32 +139,44 @@ async function resolveStill(source, img) {
   return toDataUrl(await firstFrame(new Blob([full.bytes], { type }), img)) || null;
 }
 
+// The bytes to freeze are the ones the browser actually paints: with a `srcset` at DPR > 1 that is the 2x
+// candidate, not `src`. Null until a lazy avatar has loaded — its load event re-schedules the pass.
+function paintedSource(img) {
+  const current = img.currentSrc || '';
+  return current && !current.startsWith('data:') ? current : null;
+}
+
 async function freeze(img) {
-  const current = img.getAttribute('src') || '';
-  // Already frozen: re-checking would refetch on every observer tick.
-  if (!current || current.startsWith('data:')) return;
-  // 'static' means it is already single-frame.
-  if (img.dataset.avatarFreeze === 'static') return;
-  img.dataset.avatarSource = current;
-  if (!stills.has(current)) stills.set(current, resolveStill(current, img).catch(() => null));
+  // Already frozen, or already proven single-frame: re-checking would refetch on every observer tick.
+  if (img.dataset.avatarFreeze) return true;
+  const source = paintedSource(img);
+  if (!source) return false;
+  img.dataset.avatarSource = img.getAttribute('src') || source;
+  // `srcset` outranks `src` at any DPR ≥ 1, so the still below would never be painted while it is set.
+  if (img.hasAttribute('srcset')) img.dataset.avatarSrcset = img.getAttribute('srcset');
+  if (!stills.has(source)) stills.set(source, resolveStill(source, img).catch(() => null));
   img.dataset.avatarFreeze = 'pending';
-  const still = await stills.get(current);
+  const still = await stills.get(source);
   // The view may have re-rendered while the proxy was in flight.
-  if (!img.isConnected) return;
+  if (!img.isConnected) return true;
   if (still) {
+    img.removeAttribute('srcset');
     img.src = still;
     delete img.dataset.avatarFreeze;
-    return;
+    return true;
   }
   // Static or undecodable: keep voz.vn's own image.
   img.dataset.avatarFreeze = 'static';
+  return true;
 }
 
-// Turning the setting off restores the original URL, still on the element.
+// Turning the setting off restores the original URL and 2x candidate, still on the element.
 function restore(img) {
   const source = img.dataset.avatarSource;
   if (!source || !(img.getAttribute('src') || '').startsWith('data:')) return;
   img.src = source;
+  if (img.dataset.avatarSrcset) img.setAttribute('srcset', img.dataset.avatarSrcset);
+  delete img.dataset.avatarSrcset;
   delete img.dataset.avatarFreeze;
   // Re-enabling must be able to freeze this avatar again.
   seen.delete(img);
@@ -182,7 +194,8 @@ function refresh() {
     if (seen.has(img)) continue;
     if (!isOnScreen(img)) continue;
     seen.add(img);
-    freeze(img);
+    // A lazy avatar has no painted bytes yet; its load event re-schedules, so let it be picked up again.
+    freeze(img).then((handled) => { if (!handled) seen.delete(img); });
   }
 }
 
