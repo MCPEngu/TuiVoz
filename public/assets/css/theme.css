@@ -2,7 +2,8 @@
    reacts to the resolved theme and to the data-font attribute. */
 
 /* Native widgets (controls, scrollbars, canvas). JS also sets color-scheme; this is the no-JS fallback. */
-:root { color-scheme: light; }
+:root { color-scheme: light dark; }
+:root[data-theme="light"] { color-scheme: light; }
 :root[data-theme="dark"] { color-scheme: dark; }
 
 /* Slightly dim media on the dark surface — never invert. Kept mild to keep colour accuracy. */

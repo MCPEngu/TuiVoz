@@ -255,6 +255,7 @@ html { scroll-padding-top: var(--chrome-h, 0px); }
 body {
   margin: 0;
   font-family: var(--font);
+  font-size-adjust: from-font;
   font-size: calc(16px * var(--ui-scale));
   line-height: 1.5;
   color: var(--text);

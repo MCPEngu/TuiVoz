@@ -2,17 +2,16 @@
 // guest key and the OAuth bearer token never reach the browser.
 
 import { navigate, restoreScroll } from './core/nav.js';
-import { route } from './core/router.js';
+import { route, prefetchRouteModule } from './core/router.js';
+import { api } from './api.js';
 import { loadSession } from './ui/session.js';
 import { wireHeaderMenus } from './ui/headerMenus.js';
 import { wireNavShortcuts } from './ui/chrome.js';
 import { wireTheme } from './ui/theme.js';
 import { wireChromeAutoHide } from './ui/chromeAutoHide.js';
 import { wireImageFallbacks } from './lib/imageFallback.js';
-import { wireImageDownloads } from './lib/imageDownload.js';
-import { wireStaticAvatars } from './lib/avatarStatic.js';
-import { wirePostScreenshots } from './lib/postScreenshot.js';
 import { wireAllQuoteExpansion } from './lib/quotes.js';
+import { getImageDownload, getStaticAvatars, getPostScreenshot } from './lib/settings.js';
 
 // Applied before the first paint so the page never flashes the wrong scheme; the saved preference is in
 // localStorage, so it is available synchronously.
@@ -52,10 +51,30 @@ wireChromeAutoHide();
 // voz.vn's markup carries data-onerror="hide-parent" on unfurl favicons; without a listener a dead favicon
 // keeps its box and alt text.
 wireImageFallbacks();
-wireImageDownloads();
-wireStaticAvatars();
-wirePostScreenshots();
 wireAllQuoteExpansion();
+
+// Opt-in heavy features (`imageDownload`, `staticAvatars`, `postScreenshot`) are off by default; load and
+// attach their body MutationObservers lazily only when enabled in Settings.
+const wiredOptIns = { imageDownload: false, staticAvatars: false, postScreenshot: false };
+function syncOptInFeatures() {
+  if (!wiredOptIns.imageDownload && getImageDownload()) {
+    wiredOptIns.imageDownload = true;
+    import('./lib/imageDownload.js').then(({ wireImageDownloads }) => wireImageDownloads());
+  }
+  if (!wiredOptIns.staticAvatars && getStaticAvatars()) {
+    wiredOptIns.staticAvatars = true;
+    import('./lib/avatarStatic.js').then(({ wireStaticAvatars }) => wireStaticAvatars());
+  }
+  if (!wiredOptIns.postScreenshot && getPostScreenshot()) {
+    wiredOptIns.postScreenshot = true;
+    import('./lib/postScreenshot.js').then(({ wirePostScreenshots }) => wirePostScreenshots());
+  }
+}
+syncOptInFeatures();
+window.addEventListener('voz:settings', syncOptInFeatures);
+window.addEventListener('storage', (event) => {
+  if (event.key === null || event.key === 'voz-settings:v1') syncOptInFeatures();
+});
 
 // Back/forward restores the scroll position the reader left on that history entry; `scrollRestoration` is
 // manual, so the browser cannot do it.
@@ -95,10 +114,10 @@ window.addEventListener('voz:banned-users-change', async (event) => {
   if (location.hash.startsWith('#/')) {
     history.replaceState({ ...(history.state || {}) }, '', location.hash.slice(1));
   }
-  // /voz/app-config advertises a maintenance gate; a 404 means the custom router is not deployed — tolerate it.
-  try {
-    const { api } = await import('./api.js');
-    const cfg = await api.appConfig();
+  prefetchRouteModule();
+  // /voz/app-config advertises a maintenance gate; a 404 means the custom router is not deployed — run it in
+  // parallel at low priority so it never blocks session bootstrap or route rendering.
+  api.appConfig().then((cfg) => {
     const m = cfg && cfg.maintenance;
     if (m && m.active) {
       const host = document.getElementById('app');
@@ -106,7 +125,8 @@ window.addEventListener('voz:banned-users-change', async (event) => {
       host.querySelector('p').textContent = m.message || 'voz.vn đang bảo trì, thử lại sau.';
     }
     document.dispatchEvent(new CustomEvent('voz:app-config', { detail: cfg }));
-  } catch { /* 404 tolerated: endpoint absent on this deployment */ }
-  await loadSession();
-  await route();
+  }).catch(() => { /* 404 tolerated: endpoint absent on this deployment */ });
+
+  // Session resolution and route loading overlap in parallel; auth-sensitive views await `ensureSession()`.
+  await Promise.all([loadSession(), route()]);
 })();

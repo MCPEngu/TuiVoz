@@ -33,10 +33,11 @@ function encodeQuery(query) {
   return params;
 }
 
-export async function xf(path, { method = 'GET', query, body, json, form } = {}) {
+export async function xf(path, { method = 'GET', query, body, json, form, priority } = {}) {
   const qs = encodeQuery(query).toString();
   const url = `${XF}${path}${qs ? `?${qs}` : ''}`;
   const init = { method, credentials: 'same-origin', headers: { Accept: 'application/json' } };
+  if (priority) init.priority = priority;
   if (body !== undefined) {
     init.headers['Content-Type'] = 'application/x-www-form-urlencoded';
     init.body = encodeQuery(body).toString();
@@ -116,8 +117,8 @@ export const api = {
   markAlertRead: (id) => xf(`/alerts/${id}/mark`, { method: 'POST', body: { read: true } }),
   markConversationRead: (id, date) => xf(`/conversations/${id}/mark-read`, { method: 'POST', body: { date } }),
   markThreadRead: (id, date) => xf(`/threads/${id}/mark-read`, { method: 'POST', body: { date } }),
-  unviewedAlerts: () => xf('/alerts/', { query: { unviewed: true } }),
-  unreadConversations: () => xf('/conversations/', { query: { unread: true } }),
+  unviewedAlerts: () => xf('/alerts/', { query: { unviewed: true }, priority: 'low' }),
+  unreadConversations: () => xf('/conversations/', { query: { unread: true }, priority: 'low' }),
   bookmarkPost: (postId, bookmark) => xf(`/voz/posts/${postId}/bookmark`, { method: 'POST', body: { state: bookmark ? 'bookmark' : 'unbookmark' } }),
   bookmarks: (page = 1) => xf('/voz/bookmarks', { query: { page } }),
   watched: (page = 1) => xf('/voz/watched-threads', { query: { page } }),
@@ -126,7 +127,7 @@ export const api = {
   user: (id) => xf(`/users/${id}/`),
   findUser: (username) => xf('/users/find-name', { query: { username } }),
   // Profile wall (profile_post:read).
-  profilePosts: (userId, page = 1) => xf(`/users/${userId}/profile-posts`, { query: { page } }),
+  profilePosts: (userId, page = 1, opts) => xf(`/users/${userId}/profile-posts`, { query: { page }, ...opts }),
   profilePost: (id, page = 1) => xf(`/profile-posts/${id}/`, { query: { with_comments: 1, page } }),
   profilePostComment: (id) => xf(`/profile-post-comments/${id}/`),
   profilePostComments: (id, page = 1) => xf(`/profile-posts/${id}/comments`, { query: { page } }),
@@ -141,9 +142,9 @@ export const api = {
     xf('/threads/', { method: 'POST', body: { node_id: nodeId, title, message, prefix_id: prefixId, attachment_key: attachmentKey } }),
   searchResults: (searchId, page = 1) => xf(`/search/${searchId}/`, { query: { page } }),
   stats: () => xf('/stats'),
-  appConfig: () => xf('/voz/app-config'),
+  appConfig: () => xf('/voz/app-config', { priority: 'low' }),
   // Batched client analytics like the app; JSON body, flushed on pagehide.
-  signals: (events) => xf('/voz/signals', { method: 'POST', json: { events } }),
+  signals: (events) => xf('/voz/signals', { method: 'POST', json: { events }, priority: 'low' }),
 };
 
 export const auth = {

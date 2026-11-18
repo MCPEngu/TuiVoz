@@ -4,16 +4,25 @@ import { app, state } from '../core/dom.js';
 import { auth } from '../api.js';
 import { renderAccount } from './chrome.js';
 
-export async function loadSession() {
-  try {
-    const res = await auth.status();
-    state.loggedIn = !!res.loggedIn;
-    state.me = res.me || null;
-  } catch {
-    state.loggedIn = false;
-    state.me = null;
-  }
-  renderAccount();
+let sessionPromise = null;
+
+export function loadSession() {
+  sessionPromise = (async () => {
+    try {
+      const res = await auth.status();
+      state.loggedIn = !!res.loggedIn;
+      state.me = res.me || null;
+    } catch {
+      state.loggedIn = false;
+      state.me = null;
+    }
+    renderAccount();
+  })();
+  return sessionPromise;
+}
+
+export async function ensureSession() {
+  if (sessionPromise) await sessionPromise;
 }
 
 export function requireLogin() {

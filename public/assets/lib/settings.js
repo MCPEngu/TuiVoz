@@ -186,18 +186,36 @@ export function normalizeSettings(raw) {
   return out;
 }
 
-export function loadSettings() {
+let cachedSettings = null;
+
+function readSettings() {
+  if (cachedSettings) return cachedSettings;
   try {
     const stored = localStorage.getItem(KEY);
-    if (!stored) return normalizeSettings({ navShortcuts: DEFAULT_SHORTCUTS });
-    return normalizeSettings(JSON.parse(stored));
+    cachedSettings = stored ? normalizeSettings(JSON.parse(stored)) : normalizeSettings({ navShortcuts: DEFAULT_SHORTCUTS });
   } catch {
-    return emptySettings();
+    cachedSettings = emptySettings();
   }
+  return cachedSettings;
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (event) => {
+    if (event.key === null || event.key === KEY) cachedSettings = null;
+  });
+}
+
+export function loadSettings() {
+  const s = readSettings();
+  return {
+    ...s,
+    navShortcuts: s.navShortcuts.map((item) => ({ ...item })),
+  };
 }
 
 export function saveSettings(next) {
   const settings = normalizeSettings(next);
+  cachedSettings = settings;
   try {
     localStorage.setItem(KEY, JSON.stringify(settings));
   } catch {
@@ -254,7 +272,7 @@ export function setInfiniteScroll(mode) {
 }
 
 export function getInfiniteScroll() {
-  const mode = loadSettings().infiniteScroll;
+  const mode = readSettings().infiniteScroll;
   return SCROLL_MODES.includes(mode) ? mode : SCROLL_DEFAULT;
 }
 
@@ -265,7 +283,7 @@ export function setTheme(mode) {
 }
 
 export function getTheme() {
-  const mode = loadSettings().theme;
+  const mode = readSettings().theme;
   return THEME_MODES.includes(mode) ? mode : THEME_DEFAULT;
 }
 
@@ -276,7 +294,7 @@ export function setFont(font) {
 }
 
 export function getFont() {
-  const font = loadSettings().font;
+  const font = readSettings().font;
   return FONTS.includes(font) ? font : FONT_DEFAULT;
 }
 
@@ -288,7 +306,7 @@ export function setFontScale({ postSize, uiSize } = {}) {
 }
 
 export function getFontScale() {
-  const { postSize, uiSize } = loadSettings();
+  const { postSize, uiSize } = readSettings();
   return { postSize, uiSize };
 }
 
@@ -299,7 +317,7 @@ export function setImageDownload(enabled) {
 }
 
 export function getImageDownload() {
-  return loadSettings().imageDownload === true;
+  return readSettings().imageDownload === true;
 }
 
 export function setPostScreenshot(enabled) {
@@ -309,7 +327,7 @@ export function setPostScreenshot(enabled) {
 }
 
 export function getPostScreenshot() {
-  return loadSettings().postScreenshot === true;
+  return readSettings().postScreenshot === true;
 }
 
 export function setStaticAvatars(enabled) {
@@ -319,7 +337,7 @@ export function setStaticAvatars(enabled) {
 }
 
 export function getStaticAvatars() {
-  return loadSettings().staticAvatars === true;
+  return readSettings().staticAvatars === true;
 }
 
 export function setBannedUsers(mode) {
@@ -329,7 +347,7 @@ export function setBannedUsers(mode) {
 }
 
 export function getBannedUsers() {
-  const mode = loadSettings().bannedUsers;
+  const mode = readSettings().bannedUsers;
   return BANNED_USER_MODES.includes(mode) ? mode : BANNED_USERS_DEFAULT;
 }
 
@@ -340,7 +358,7 @@ export function setFullNumbers(mode) {
 }
 
 export function getFullNumbers() {
-  const mode = loadSettings().fullNumbers;
+  const mode = readSettings().fullNumbers;
   return FULL_NUMBERS_MODES.includes(mode) ? mode : FULL_NUMBERS_DEFAULT;
 }
 

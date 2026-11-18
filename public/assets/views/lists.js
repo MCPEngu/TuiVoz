@@ -1,6 +1,6 @@
 // Alerts, bookmarks and watched threads.
 
-import { app } from '../core/dom.js';
+import { app, ensureStylesheet } from '../core/dom.js';
 import { esc, num, timeAgo } from '../core/utils.js';
 import { userPath, withPage } from '../core/paths.js';
 import { api } from '../api.js';
@@ -8,7 +8,7 @@ import { setActiveNav, setBreadcrumbs } from '../ui/chrome.js';
 import { setTitle } from '../ui/title.js';
 import { loading, errorBox } from '../ui/feedback.js';
 import { pagination, wirePageJump } from '../ui/pagination.js';
-import { requireLogin } from '../ui/session.js';
+import { ensureSession, requireLogin } from '../ui/session.js';
 import { threadRow, postRow, wireThreadRowBans } from '../ui/threadRow.js';
 import { avatarMarkup } from '../lib/avatar.js';
 import { alertTextMarkup } from '../ui/alertMarkup.js';
@@ -17,6 +17,7 @@ export async function viewAlerts(page) {
   setActiveNav('alerts');
   setBreadcrumbs([{ label: 'Diễn đàn', href: '/' }, { label: 'Thông báo' }]);
   setTitle('Alerts', page);
+  await Promise.all([ensureSession(), ensureStylesheet('/assets/css/account.css')]);
   if (!requireLogin()) return;
   loading();
   try {
@@ -58,6 +59,7 @@ export async function viewBookmarks(page) {
   setActiveNav('bookmarks');
   setBreadcrumbs([{ label: 'Diễn đàn', href: '/' }, { label: 'Đánh dấu' }]);
   setTitle('Bookmarks', page);
+  await ensureSession();
   if (!requireLogin()) return;
   loading();
   try {
@@ -85,6 +87,7 @@ export async function viewWatched(page) {
   setActiveNav('watched');
   setBreadcrumbs([{ label: 'Diễn đàn', href: '/' }, { label: 'Theo dõi' }]);
   setTitle('Watched threads', page);
+  await ensureSession();
   if (!requireLogin()) return;
   loading();
   try {

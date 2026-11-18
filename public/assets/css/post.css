@@ -15,6 +15,13 @@
 .block--messages .block-body { background: transparent; }
 .block--messages > .block-header { background: transparent; padding: 7px 0; }
 
+/* Defer layout and paint of deep below-the-fold posts (`defer-rendering-heavy-content`).
+   Posts 1–8 cover the initial viewport + browser activation margin without immediate unlock reflows. */
+#post-list > .message--post:nth-child(n + 9) {
+  content-visibility: auto;
+  contain-intrinsic-size: auto none auto 280px;
+}
+
 .bbWrapper img.smilie { display: inline-block; vertical-align: text-bottom; max-width: none; margin: 0; }
 
 .member-card { position: fixed; z-index: 150; width: 360px; max-width: calc(100vw - 16px); max-height: calc(100vh - 16px); overflow-y: auto; background: var(--content-bg); color: var(--text); border: 1px solid var(--border); border-radius: 4px; box-shadow: var(--shadow-card); font-size: calc(14px * var(--ui-scale)); }

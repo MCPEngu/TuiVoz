@@ -73,7 +73,7 @@ export function renderAccount() {
 
 export function setBreadcrumbs(items, action) {
   if (!items || !items.length) {
-    breadcrumbsEl.innerHTML = '';
+    breadcrumbsEl.replaceChildren();
     return;
   }
   breadcrumbsEl.innerHTML = items

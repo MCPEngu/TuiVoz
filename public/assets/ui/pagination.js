@@ -89,6 +89,7 @@ export function wirePageJump(makeHref) {
       input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
           e.preventDefault();
+          if (e.isComposing || e.keyCode === 229) return;
           go();
         } else if (e.key === 'Escape') {
           input.replaceWith(btn);

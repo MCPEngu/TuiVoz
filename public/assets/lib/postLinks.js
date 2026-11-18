@@ -21,6 +21,18 @@ export function isVozUrl(value) {
 
 // "https://voz.vn/t/a.1/" → "/t/a.1/". Null when the link should stay absolute.
 export function localPathFor(value) {
+  if (!value) return null;
+  // Fast path: skip URL parsing for external links that neither start with '/' nor reference voz.vn.
+  if (value.charCodeAt(0) === 47 && value.charCodeAt(1) !== 47) {
+    const qIdx = value.indexOf('?');
+    const hIdx = value.indexOf('#');
+    const end = qIdx >= 0 && hIdx >= 0 ? Math.min(qIdx, hIdx) : qIdx >= 0 ? qIdx : hIdx >= 0 ? hIdx : value.length;
+    const path = value.slice(0, end);
+    if (VOZ_ONLY_SUFFIXES.some((suffix) => path.endsWith(suffix))) return null;
+    if (!LOCAL_PREFIXES.some((prefix) => path.startsWith(prefix))) return null;
+    return value;
+  }
+  if (!value.includes('voz.vn')) return null;
   let url;
   try {
     url = new URL(value, VOZ_ORIGIN);

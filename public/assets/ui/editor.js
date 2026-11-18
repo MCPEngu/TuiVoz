@@ -1,6 +1,6 @@
 // The textarea remains the canonical, synchronous BBCode interface for every view.
 import { esc } from '../core/utils.js';
-import { state } from '../core/dom.js';
+import { state, ensureStylesheet } from '../core/dom.js';
 import { editorCodeHtml, editorDomCode, editorCodePlain } from '../lib/editorCodec.js';
 import { loadSmilies, smiliesReady, renderSmilies } from '../lib/smilies.js';
 import { editorToolbar, showToolPanel, panelTools } from './editorTools.js';
@@ -27,6 +27,7 @@ export function editorHtml(id, value = '', placeholder = 'Nội dung…', contex
 export function clearEditorDraft(textarea) { textarea?.dispatchEvent(new Event('editor:clear-draft')); }
 
 export function wireEditor(container) {
+  ensureStylesheet('/assets/css/editor.css');
   for (const editor of container.querySelectorAll('.rich-editor')) {
     if (editor.dataset.wired) continue;
     try {

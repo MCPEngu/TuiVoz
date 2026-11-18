@@ -3,7 +3,7 @@
 // The app is read-only on profile posts (only profile_post:read), and follow/ignore/timeline are
 // web-only endpoints, so tabs that have no API fall back to content the API can serve.
 
-import { app, state } from '../core/dom.js';
+import { app, state, ensureStylesheet } from '../core/dom.js';
 import { esc, num, unix, timeAgo, fullDate, postDate } from '../core/utils.js';
 import { api, ApiError } from '../api.js';
 import { userPath } from '../core/paths.js';
@@ -16,7 +16,8 @@ import { userBadges } from '../lib/userBadges.js';
 import { sanitizeHtml, bbcodeToPlain } from '../lib/bbcode.js';
 import { signatureHtml } from '../lib/signature.js';
 import { memberContentRow, memberPostRow, memberActivityRow, profilePostCommentRow, wireThreadRowBans } from '../ui/threadRow.js';
-import { applyBannedMark, bannedFeatureOn } from '../lib/bannedUsers.js';
+import { getBannedUsers } from '../lib/settings.js';
+import { ensureSession } from '../ui/session.js';
 import { wireMemberTooltips } from '../ui/memberTooltip.js';
 import { wireEditor, clearEditorDraft } from '../ui/editor.js';
 import { registerAttachments } from '../lib/attachments.js';
@@ -314,7 +315,12 @@ export async function viewUser(userId, params = new URLSearchParams(), tabSlug =
   const tab = SLUG_TO_TAB[tabSlug] || 'wall';
   const page = Math.max(1, Number(params.get('page')) || 1);
   try {
-    const res = await api.user(userId);
+    const [res] = await Promise.all([
+      api.user(userId),
+      ensureSession(),
+      ensureStylesheet('/assets/css/account.css'),
+      ensureStylesheet('/assets/css/editor.css'),
+    ]);
     const user = res.user;
     const tabHtml = await renderTab(user, tab, page);
     setBreadcrumbs([{ label: 'Diễn đàn', href: '/' }, { label: user.username }]);
@@ -331,9 +337,11 @@ export async function viewUser(userId, params = new URLSearchParams(), tabSlug =
     wireMemberTooltips(app, [user]);
     wireThreadRowBans(app, [user]);
     // "smart" mode only resolves a member the reader opened; the profile header is exactly that.
-    if (bannedFeatureOn()) {
+    if (getBannedUsers() !== 'off') {
       const names = [...app.querySelectorAll('.memberHeader-nameWrapper [class*="username"]')];
-      applyBannedMark(names, user.user_id).catch(() => {});
+      import('../lib/bannedUsers.js')
+        .then(({ applyBannedMark }) => applyBannedMark(names, user.user_id))
+        .catch(() => {});
     }
   } catch (err) {
     app.innerHTML = errorBox(err);
@@ -345,7 +353,10 @@ export async function viewProfilePost(postId, page = 1, anchorId = '') {
   setActiveNav('');
   loading();
   try {
-    const res = await api.profilePost(postId, page);
+    const [res] = await Promise.all([
+      api.profilePost(postId, page),
+      ensureStylesheet('/assets/css/account.css'),
+    ]);
     const post = res.profile_post || res;
     const owner = post.ProfileUser || {};
     const comments = res.comments || post.latest_comments || post.comments || res.profile_post_comments || [];

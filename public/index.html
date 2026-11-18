@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
 <title>VOZ</title>
 <meta name="description" content="Voz của tui, xài voz theo cách của tui">
 <link rel="icon" href="/favicon.ico" sizes="any">
@@ -50,20 +51,19 @@
       // The preload in the head is unconditional so it starts with the first byte; drop it when the reader reads
       // in another family, so the 20 KB is not spent for nothing.
       if (font !== 'be-vietnam') document.getElementById('font-preload')?.remove();
-              // Font size percentages, applied pre-paint; mirrored by applyFontScale() in
-              // ui/theme.js.
-              var scale = function (v) {
-                var isText = typeof v === 'string';
-                if (isText && v.trim() === '') return 100;
-                if (!isText && typeof v !== 'number') return 100;
-                var n = Number(v);
-                if (!isFinite(n)) return 100;
-                n = Math.round(n / 5) * 5;
-                return Math.min(200, Math.max(80, n));
-              };
-              r.style.setProperty('--post-scale', String(scale(s.postSize) / 100));
-              r.style.setProperty('--ui-scale', String(scale(s.uiSize) / 100));
-            } catch (e) { /* storage disabled: fall through to the light default */ }
+      // Font size percentages, applied pre-paint; mirrored by applyFontScale() in ui/theme.js.
+      var scale = function (v) {
+        var isText = typeof v === 'string';
+        if (isText && v.trim() === '') return 100;
+        if (!isText && typeof v !== 'number') return 100;
+        var n = Number(v);
+        if (!isFinite(n)) return 100;
+        n = Math.round(n / 5) * 5;
+        return Math.min(200, Math.max(80, n));
+      };
+      r.style.setProperty('--post-scale', String(scale(s.postSize) / 100));
+      r.style.setProperty('--ui-scale', String(scale(s.uiSize) / 100));
+    } catch (e) { /* storage disabled: fall through to the light default */ }
   })();
 </script>
 <link rel="stylesheet" href="/assets/css/layout.css">
@@ -73,26 +73,36 @@
 <link rel="stylesheet" href="/assets/css/media.css">
 <link rel="stylesheet" href="/assets/css/reaction.css">
 <link rel="stylesheet" href="/assets/css/forms.css">
-<link rel="stylesheet" href="/assets/css/editor.css">
-<link rel="stylesheet" href="/assets/css/account.css">
+<!-- Route/editor-only stylesheets stay in exact DOM cascade order before responsive.css, promoted once loaded. -->
+<link rel="stylesheet" href="/assets/css/editor.css" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="/assets/css/account.css" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="/assets/css/misc.css">
 <link rel="stylesheet" href="/assets/css/responsive.css">
 <link rel="stylesheet" href="/assets/css/headerMenus.css">
 <link rel="stylesheet" href="/assets/css/home.css">
-<!-- Route-only stylesheets: `async` keeps them out of the critical path, and `onload` promotes them once they
-     arrive. Render-blocking CSS is what pushed Speed Index to 4.1s. -->
 <link rel="stylesheet" href="/assets/css/settings.css" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="/assets/css/stickers.css" media="print" onload="this.media='all'">
 <noscript>
+<link rel="stylesheet" href="/assets/css/editor.css">
+<link rel="stylesheet" href="/assets/css/account.css">
 <link rel="stylesheet" href="/assets/css/settings.css">
 <link rel="stylesheet" href="/assets/css/stickers.css">
 </noscript>
+<!-- Placed after critical stylesheets so module preloads never contend with FCP CSS. -->
+<link rel="modulepreload" href="/assets/app.js">
+<link rel="modulepreload" href="/assets/api.js">
+<link rel="modulepreload" href="/assets/core/router.js">
+<link rel="modulepreload" href="/assets/core/nav.js">
+<link rel="modulepreload" href="/assets/core/dom.js">
+<link rel="modulepreload" href="/assets/lib/settings.js">
+<link rel="modulepreload" href="/assets/ui/session.js">
+<link rel="modulepreload" href="/assets/ui/chrome.js">
 </head>
 <body>
 <header class="p-header">
   <div class="p-header-inner">
     <a class="p-header-logo" href="/" aria-label="VOZ — về trang chủ">
-      <img src="/assets/img/voz-lockup.svg" alt="VOZ" width="348" height="177" decoding="async">
+      <img src="/assets/img/voz-lockup.svg" alt="VOZ" width="348" height="177" fetchpriority="high">
     </a>
     <div class="p-header-account" id="header-account"></div>
   </div>

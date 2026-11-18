@@ -6,7 +6,7 @@ import { avatarMarkup } from '../lib/avatar.js';
 import { prefixLabel } from '../lib/prefix.js';
 import { bbcodeToPlain } from '../lib/bbcode.js';
 import { threadLastPage } from '../lib/unread.js';
-import { wireBannedUsernames } from '../lib/bannedUsers.js';
+import { getBannedUsers } from '../lib/settings.js';
 
 export function threadRow(thread, { sticky = false, showForum = false } = {}) {
   const starter = thread.User || { user_id: thread.user_id, username: thread.username };
@@ -67,7 +67,8 @@ export function threadRow(thread, { sticky = false, showForum = false } = {}) {
 // Thread list, post lists and member-content rows all carry data-member-id on their username links, so one
 // scan covers the starter, the latest poster and any attribution. `users` lets visible accounts skip a request.
 export function wireThreadRowBans(root, users) {
-  wireBannedUsernames(root, users);
+  if (getBannedUsers() !== 'all') return;
+  import('../lib/bannedUsers.js').then(({ wireBannedUsernames }) => wireBannedUsernames(root, users));
 }
 
 // Row for post-centric lists (bookmarks, search results).

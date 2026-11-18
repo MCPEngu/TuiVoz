@@ -12,7 +12,7 @@ import { reactionBar, reactionSummary } from './reactions.js';
 
 // Conversation messages share the post layout; they differ in the permalink (no post number, no bookmark) and
 // the action set (edit, quote, reply). Reactions are dropped: the API answers 403 for a message id.
-function messageHtml(msg, conversation, page) {
+function messageHtml(msg, conversation, page, { aboveFold = false } = {}) {
   const conv = conversation || {};
   const user = msg.User || {};
   const edited = msg.last_edit_date ? `<span class="u-dimmed">· Đã sửa ${timeAgo(msg.last_edit_date, 'thread')}</span>` : '';
@@ -52,9 +52,9 @@ function messageHtml(msg, conversation, page) {
             </header>
             <div class="message-content">
               <div class="message-userContent">
-                <article class="message-body bbWrapper">${sanitizeHtml(msg.message_parsed || esc(msg.message), msg.message)}</article>
+                <article class="message-body bbWrapper">${sanitizeHtml(msg.message_parsed || esc(msg.message), msg.message, { lazyImages: !aboveFold })}</article>
               </div>
-              ${user.signature ? `<div class="message-signature bbWrapper is-collapsed">${sanitizeHtml(signatureHtml(user.signature))}</div><button type="button" class="signature-toggle" hidden aria-expanded="false">Xem thêm</button>` : ''}
+              ${user.signature ? `<div class="message-signature bbWrapper is-collapsed">${sanitizeHtml(signatureHtml(user.signature), '', { lazyImages: true })}</div><button type="button" class="signature-toggle" hidden aria-expanded="false">Xem thêm</button>` : ''}
               <footer class="message-footer">
                 <div class="message-actionBar actionBar">
                   <div class="actionBar-set actionBar-set--left">${ownerActions}</div>
@@ -74,8 +74,8 @@ function messageHtml(msg, conversation, page) {
 }
 
 // `kind` selects the endpoint family: 'thread' (default) or 'conversation'.
-export function postHtml(post, thread, page, kind = 'thread') {
-  if (kind === 'conversation') return messageHtml(post, thread, page);
+export function postHtml(post, thread, page, kind = 'thread', { aboveFold = false } = {}) {
+  if (kind === 'conversation') return messageHtml(post, thread, page, { aboveFold });
   const user = post.User || {};
   const edited = post.last_edit_date ? `<span class="u-dimmed">· Đã sửa ${timeAgo(post.last_edit_date, 'thread')}</span>` : '';
   const ownerActions = [];
@@ -126,9 +126,9 @@ export function postHtml(post, thread, page, kind = 'thread') {
             </header>
             <div class="message-content">
               <div class="message-userContent">
-                <article class="message-body bbWrapper">${sanitizeHtml(post.message_parsed || esc(post.message), post.message)}</article>
+                <article class="message-body bbWrapper">${sanitizeHtml(post.message_parsed || esc(post.message), post.message, { lazyImages: !aboveFold })}</article>
               </div>
-              ${user.signature ? `<div class="message-signature bbWrapper is-collapsed">${sanitizeHtml(signatureHtml(user.signature))}</div><button type="button" class="signature-toggle" hidden aria-expanded="false">Xem thêm</button>` : ''}
+              ${user.signature ? `<div class="message-signature bbWrapper is-collapsed">${sanitizeHtml(signatureHtml(user.signature), '', { lazyImages: true })}</div><button type="button" class="signature-toggle" hidden aria-expanded="false">Xem thêm</button>` : ''}
               <footer class="message-footer">
                 <div class="message-actionBar actionBar">
                   <div class="actionBar-set actionBar-set--left">

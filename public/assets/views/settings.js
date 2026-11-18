@@ -1,6 +1,6 @@
 // Browser-local settings: nav bar shortcuts plus JSON backup/restore.
 
-import { app } from '../core/dom.js';
+import { app, ensureStylesheet } from '../core/dom.js';
 import { esc } from '../core/utils.js';
 import { setBreadcrumbs } from '../ui/chrome.js';
 import { setTitle } from '../ui/title.js';
@@ -375,7 +375,7 @@ async function applyImported(result) {
     // Only a full backup carries recents; add-only files must not clear them.
     if (!result.addOnly && Array.isArray(result.recent)) {
       clearRecentStickers();
-      for (const item of [...result.recent].reverse()) {
+      for (const item of result.recent.toReversed()) {
         const url = typeof item === 'string' ? item : item?.url;
         if (url) addRecentSticker(url, typeof item === 'object' ? item?.base64 : null);
       }
@@ -843,7 +843,11 @@ function openAlbumEditor(albumId, onChange) {
   });
 }
 
-export function viewSettings() {
+export async function viewSettings() {
+  await Promise.all([
+    ensureStylesheet('/assets/css/settings.css'),
+    ensureStylesheet('/assets/css/stickers.css'),
+  ]);
   setBreadcrumbs([{ label: 'Diễn đàn', href: '/' }, { label: 'Cài đặt' }]);
   setTitle('Cài đặt');
   app.innerHTML = settingsHtml();

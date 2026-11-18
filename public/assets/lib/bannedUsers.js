@@ -138,7 +138,7 @@ export async function checkBanned(userOrId) {
   const hit = cache.get(id);
   if (hit && Date.now() - hit.at < TTL) return hit.banned;
   try {
-    await api.profilePosts(id, 1);
+    await api.profilePosts(id, 1, { priority: 'low' });
     storeVerdict(id, false);
     return false;
   } catch (err) {

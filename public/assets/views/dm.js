@@ -1,6 +1,6 @@
 // Direct messages: list, conversation, compose.
 
-import { app } from '../core/dom.js';
+import { app, ensureStylesheet } from '../core/dom.js';
 import { esc, num, timeAgo } from '../core/utils.js';
 import { dmPath, userPath, withPage } from '../core/paths.js';
 import { navigate, keepCurrentScroll } from '../core/nav.js';
@@ -9,7 +9,7 @@ import { setActiveNav, setBreadcrumbs } from '../ui/chrome.js';
 import { setTitle } from '../ui/title.js';
 import { loading, errorBox, toast } from '../ui/feedback.js';
 import { pagination, wirePageJump } from '../ui/pagination.js';
-import { requireLogin } from '../ui/session.js';
+import { ensureSession, requireLogin } from '../ui/session.js';
 import { editorHtml, wireEditor, clearEditorDraft } from '../ui/editor.js';
 import { avatarMarkup } from '../lib/avatar.js';
 import { stripQuotes } from '../lib/bbcode.js';
@@ -38,6 +38,7 @@ export async function viewDmList(page) {
   setActiveNav('dm');
   setBreadcrumbs([{ label: 'Diễn đàn', href: '/' }, { label: 'Hộp thư' }]);
   setTitle('Direct messages', page);
+  await Promise.all([ensureSession(), ensureStylesheet('/assets/css/account.css')]);
   if (!requireLogin()) return;
   loading();
   try {
@@ -78,6 +79,11 @@ export async function viewDmList(page) {
 
 export async function viewDm(conversationId, page) {
   setActiveNav('dm');
+  await Promise.all([
+    ensureSession(),
+    ensureStylesheet('/assets/css/account.css'),
+    ensureStylesheet('/assets/css/editor.css'),
+  ]);
   if (!requireLogin()) return;
   loading();
   try {
@@ -255,6 +261,11 @@ function wireMessageActions(conv, messages, page) {
 
 export async function viewNewDm(prefillUser) {
   setActiveNav('dm');
+  await Promise.all([
+    ensureSession(),
+    ensureStylesheet('/assets/css/account.css'),
+    ensureStylesheet('/assets/css/editor.css'),
+  ]);
   if (!requireLogin()) return;
   setBreadcrumbs([
     { label: 'Diễn đàn', href: '/' },

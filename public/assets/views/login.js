@@ -1,6 +1,6 @@
 // OAuth login: exchange the authorization code (PKCE) captured by the userscript.
 
-import { app, state } from '../core/dom.js';
+import { app, state, ensureStylesheet } from '../core/dom.js';
 import { navigate } from '../core/nav.js';
 import { auth } from '../api.js';
 import { setActiveNav, setBreadcrumbs } from '../ui/chrome.js';
@@ -26,7 +26,10 @@ export async function viewLogin() {
   setActiveNav('');
   setBreadcrumbs([{ label: 'Diễn đàn', href: '/' }, { label: 'Đăng nhập' }]);
   setBrandTitle();
-  if (!state.config) state.config = await auth.config();
+  await Promise.all([
+    state.config ? Promise.resolve() : auth.config().then((c) => { state.config = c; }),
+    ensureStylesheet('/assets/css/account.css'),
+  ]);
   const cfg = state.config;
 
   app.innerHTML = `

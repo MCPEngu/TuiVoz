@@ -42,12 +42,16 @@ export function splitSmilieText(text) {
   return parts;
 }
 
-export function renderSmilies(root) {
+export function renderSmilies(root, lazy = false) {
   if (!pattern) return false;
   const walker = root.ownerDocument.createTreeWalker(root, NodeFilter.SHOW_TEXT);
   const nodes = [];
   while (walker.nextNode()) {
-    if (!walker.currentNode.parentElement.closest('a, code, pre, script, style')) nodes.push(walker.currentNode);
+    const textNode = walker.currentNode;
+    // Skip regex work completely when text doesn't even contain a smilie character or match
+    pattern.lastIndex = 0;
+    if (!pattern.test(textNode.nodeValue)) continue;
+    if (!textNode.parentElement.closest('a, code, pre, script, style')) nodes.push(textNode);
   }
   let replaced = false;
   for (const node of nodes) {
@@ -68,6 +72,10 @@ export function renderSmilies(root) {
       image.dataset.smilie = code;
       image.width = Number(smilie.width) || 24;
       image.height = Number(smilie.height) || 24;
+      if (lazy) {
+        image.loading = 'lazy';
+        image.decoding = 'async';
+      }
       fragment.append(image);
     }
     node.replaceWith(fragment);

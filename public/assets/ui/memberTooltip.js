@@ -3,7 +3,7 @@ import { userPath } from '../core/paths.js';
 import { avatarMarkup } from '../lib/avatar.js';
 import { api } from '../api.js';
 import { userBadges } from '../lib/userBadges.js';
-import { applyBannedMark, bannedFeatureOn } from '../lib/bannedUsers.js';
+import { getBannedUsers } from '../lib/settings.js';
 
 const cache = new Map();
 let active;
@@ -61,20 +61,22 @@ export function wireMemberTooltips(container, users) {
     render(byId.get(id) || { user_id: Number(id), username: link.textContent });
     const decorateBanned = () => {
       // "smart" mode resolves the ban only for the member the reader actually opened.
-      if (!bannedFeatureOn() || !card) return;
+      if (getBannedUsers() === 'off' || !card) return;
       const targetCard = card;
-      applyBannedMark(link, id).then((banned) => {
-        if (!banned || !targetCard.isConnected) return;
-        // render() replaces innerHTML, so the name element is resolved here rather than held from before.
-        targetCard.querySelector('.member-card-name')?.classList.add('username--banned');
-        const host = targetCard.querySelector('.member-card-header > div');
-        if (host && !targetCard.querySelector('.member-card-banned')) {
-          const note = document.createElement('div');
-          note.className = 'member-card-banned';
-          note.textContent = 'Tài khoản đã bị ban';
-          host.append(note);
-        }
-      }).catch(() => {});
+      import('../lib/bannedUsers.js')
+        .then(({ applyBannedMark }) => applyBannedMark(link, id))
+        .then((banned) => {
+          if (!banned || !targetCard.isConnected) return;
+          // render() replaces innerHTML, so the name element is resolved here rather than held from before.
+          targetCard.querySelector('.member-card-name')?.classList.add('username--banned');
+          const host = targetCard.querySelector('.member-card-header > div');
+          if (host && !targetCard.querySelector('.member-card-banned')) {
+            const note = document.createElement('div');
+            note.className = 'member-card-banned';
+            note.textContent = 'Tài khoản đã bị ban';
+            host.append(note);
+          }
+        }).catch(() => {});
     };
     decorateBanned();
     try {

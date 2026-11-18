@@ -62,23 +62,29 @@
 .toast.is-visible { opacity: 1; transform: translateX(-50%) translateY(0); }
 .toast.is-error { background: var(--danger-text); }
 
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
+dialog:modal {
+  overscroll-behavior: contain;
+}
+dialog::backdrop {
   background: var(--scrim);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  z-index: 1000;
+  overflow: hidden;
+  overscroll-behavior: contain;
 }
 .modal {
+  border: 0;
+  padding: 0;
+  margin: auto;
+  color: var(--text);
   background: var(--content-bg);
   border-radius: var(--radius);
   max-width: 560px;
-  width: 100%;
+  width: calc(100% - 32px);
   max-height: 90vh;
   overflow: auto;
+}
+.modal-title {
+  margin: 0;
+  font: inherit;
 }
 .modal-header {
   background: var(--block-header-bg);

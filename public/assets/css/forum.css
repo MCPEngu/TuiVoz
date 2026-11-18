@@ -47,6 +47,11 @@
 /* ---------- thread list (XenForo structItem table) ---------- */
 .structItemContainer { list-style: none; margin: 0; padding: 0; width: 100%; }
 .structItemContainer-group { display: block; }
+/* Defer layout and paint of below-the-fold thread rows (`defer-rendering-heavy-content`). */
+#thread-rows .structItem:nth-child(n + 14) {
+  content-visibility: auto;
+  contain-intrinsic-size: auto none auto 62px;
+}
 .structItem {
   display: table;
   table-layout: fixed;

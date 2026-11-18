@@ -283,7 +283,13 @@ function embedDouyin(anchor, id) {
 function hydrateDouyinLinks(root) {
   // Already-embedded posts are skipped here too: restoreMedia runs once per post per render, so a re-render
   // would otherwise stack a second player on every existing one.
-  const anchors = [...root.querySelectorAll('a[href]')].filter((a) => !a.closest('.media-embed') && (isDouyinLink(a.getAttribute('href')) || douyinVideoId(a.getAttribute('href'))));
+  const anchors = [];
+  for (const a of root.querySelectorAll('a[href]')) {
+    const href = a.getAttribute('href');
+    if (!href || !href.includes('douyin')) continue;
+    if (!a.closest('.media-embed') && (isDouyinLink(href) || douyinVideoId(href))) anchors.push(a);
+  }
+  if (!anchors.length) return;
   // Grouped by href so a repeated link costs one request and shares the module cache.
   const pending = new Map();
   for (const anchor of anchors) {

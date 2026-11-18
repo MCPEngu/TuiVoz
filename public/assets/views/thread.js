@@ -1,22 +1,21 @@
 // Thread view: post list, reply box, and the click handlers for every post action.
 
-import { app, state } from '../core/dom.js';
+import { app, state, ensureStylesheet } from '../core/dom.js';
 import { esc, num } from '../core/utils.js';
 import { threadPath, forumPath, userPath, withPage } from '../core/paths.js';
-import { currentPage, navigate, keepCurrentScroll } from '../core/nav.js';
+import { navigate, keepCurrentScroll } from '../core/nav.js';
 import { ICON_EYE_ON, ICON_EYE_OFF, ICON_USER, ICON_REPLY, ICON_ATTACH } from '../core/icons.js';
 import { avatarMarkup } from '../lib/avatar.js';
 import { api, ApiError } from '../api.js';
 import { setActiveNav, setBreadcrumbs } from '../ui/chrome.js';
+import { ensureSession } from '../ui/session.js';
 import { setThreadTitle } from '../ui/title.js';
 import { loading, errorBox, toast } from '../ui/feedback.js';
 import { pagination, wirePageJump, wireScrollArm } from '../ui/pagination.js';
 import { postHtml } from '../ui/post.js';
 import { wireThreadRowBans } from '../ui/threadRow.js';
 import { hydrateReactionLists, reactionBar, reactionSummary, invalidateReactionUsers } from '../ui/reactions.js';
-import { editorHtml, wireEditor, clearEditorDraft } from '../ui/editor.js';
 import { registerAttachments, clearAttachments } from '../lib/attachments.js';
-import { openInlineEdit } from '../ui/inlineEdit.js';
 import { openReportModal } from '../ui/modal.js';
 import { prefixLabel } from '../lib/prefix.js';
 import { quoteBlock } from '../lib/bbcode.js';
@@ -24,10 +23,24 @@ import { loadSmilies } from '../lib/smilies.js';
 import { wireMemberTooltips } from '../ui/memberTooltip.js';
 import { wireTitleHold } from '../ui/titleHold.js';
 import { mountInfiniteScroll } from '../ui/infiniteScroll.js';
-import { openPostNumberPopup } from '../ui/postNumberPopup.js';
 import { jumpToAnchor } from '../lib/jumpToAnchor.js';
 import { signalOpen, signalRead } from '../lib/signals.js';
-import { moderationButtonHtml, moderationMenuHtml, wireModeration, openWarnModal } from '../ui/threadModeration.js';
+
+const MOD_FLAGS = ['can_edit', 'can_lock_unlock', 'can_stick_unstick', 'can_move', 'can_soft_delete'];
+
+function hasThreadModeration(thread) {
+  return Boolean(state.loggedIn && thread && MOD_FLAGS.some((flag) => thread[flag]));
+}
+
+let reactionsPromise = null;
+function ensureReactions() {
+  if (state.reactions) return Promise.resolve(state.reactions);
+  reactionsPromise ||= api.reactions()
+    .then((r) => { state.reactions = r.reactions || []; return state.reactions; })
+    .catch(() => { state.reactions = []; return state.reactions; })
+    .finally(() => { reactionsPromise = null; });
+  return reactionsPromise;
+}
 
 // Posts currently on screen, extended as infinite scroll appends, so the delegated click handler can resolve a
 // post from any appended page.
@@ -79,14 +92,36 @@ function quickReplyUserHtml() {
 }
 
 function wireSignatureToggles(root) {
-  root.querySelectorAll('.message-signature').forEach((signature) => {
+  const candidates = [];
+  for (const signature of root.querySelectorAll('.message-signature')) {
     const button = signature.nextElementSibling;
-    if (!button?.matches('.signature-toggle') || signature.dataset.toggleReady) return;
+    if (!button?.matches('.signature-toggle') || signature.dataset.toggleReady) continue;
+    candidates.push({ signature, button });
+  }
+  // Batch all DOM layout reads BEFORE mutating `.hidden` / `dataset`, and skip off-screen `content-visibility: auto`
+  // signatures (`clientHeight === 0`) until `contentvisibilityautostatechange` fires near the viewport.
+  const ready = [];
+  for (const item of candidates) {
+    const scrollH = item.signature.scrollHeight;
+    const clientH = item.signature.clientHeight;
+    if (scrollH === 0 && clientH === 0) continue;
+    ready.push({ ...item, overflow: scrollH > clientH + 1 });
+  }
+  for (const { signature, button, overflow } of ready) {
     signature.dataset.toggleReady = 'true';
-    if (signature.scrollHeight > signature.clientHeight + 1) button.hidden = false;
-  });
+    if (overflow) button.hidden = false;
+  }
   if (root !== app || root.dataset.signatureTogglesWired) return;
   root.dataset.signatureTogglesWired = 'true';
+  let sigRaf = false;
+  root.addEventListener('contentvisibilityautostatechange', (event) => {
+    if (event.skipped || sigRaf) return;
+    sigRaf = true;
+    requestAnimationFrame(() => {
+      sigRaf = false;
+      wireSignatureToggles(app);
+    });
+  }, true);
   root.addEventListener('click', (event) => {
     const button = event.target.closest('.signature-toggle');
     if (!button) return;
@@ -108,15 +143,16 @@ export async function viewThread(threadId, page, focusPost) {
   setActiveNav('home');
   loading();
   try {
-    if (!state.reactions) {
-      try {
-        const r = await api.reactions();
-        state.reactions = r.reactions || [];
-      } catch {
-        state.reactions = [];
-      }
-    }
-    const [res] = await Promise.all([api.thread(threadId, page === 'last' ? 1 : page), loadSmilies()]);
+    // Run thread fetch, smilies, reactions catalogue, and session resolution in parallel instead of a 3-hop chain.
+    const editorPrefetch = ensureSession().then(() =>
+      state.loggedIn ? Promise.all([import('../ui/editor.js'), ensureStylesheet('/assets/css/editor.css')]) : null
+    );
+    const [res] = await Promise.all([
+      api.thread(threadId, page === 'last' ? 1 : page),
+      loadSmilies(),
+      ensureReactions(),
+      ensureSession(),
+    ]);
     const thread = res.thread;
     const posts = res.posts || [];
     // Same analytics the app sends: an `open` when the thread screen mounts, a `read` when it unmounts
@@ -154,9 +190,17 @@ export async function viewThread(threadId, page, focusPost) {
       { label: forum.title || 'Chủ đề', href: forumPath(thread.Forum || { node_id: thread.node_id, title: '' }) },
     ]);
 
-    const canReply = thread.can_reply;
+    const canReply = Boolean(thread.can_reply);
+    const canMod = hasThreadModeration(thread);
+    const [editorBundle, modBundle] = await Promise.all([
+      canReply ? (await editorPrefetch) || Promise.all([import('../ui/editor.js'), ensureStylesheet('/assets/css/editor.css')]) : null,
+      canMod ? import('../ui/threadModeration.js') : null,
+    ]);
+    const editorMod = editorBundle ? editorBundle[0] : null;
+
     const watching = !!thread.is_watching;
     const authorHtml = `<a href="${userPath(thread.User || { user_id: thread.user_id, username: thread.username })}" class="pageNav-author">${ICON_USER}${esc(thread.username)}</a>`;
+    const currentPageNum = res.pagination ? res.pagination.current_page : 1;
     app.innerHTML = `
       <div class="block block--messages">
         <div class="block-header">
@@ -164,14 +208,14 @@ export async function viewThread(threadId, page, focusPost) {
             ${prefixLabel(thread)}${esc(thread.title)}
           </span>
           <span class="block-header-extra">${num(thread.reply_count, 'thread')} trả lời · ${num(thread.view_count, 'thread')} xem</span>
-          ${moderationButtonHtml(thread)}
+          ${modBundle ? modBundle.moderationButtonHtml(thread) : ''}
           <button type="button" class="block-header-icon${watching ? ' is-on' : ''}" id="watch-btn"
                   data-thread="${threadId}" data-watching="${watching ? '1' : '0'}"
                   title="${watching ? 'Bỏ theo dõi chủ đề' : 'Theo dõi chủ đề'}"
                   aria-label="${watching ? 'Bỏ theo dõi chủ đề' : 'Theo dõi chủ đề'}">
             ${watching ? ICON_EYE_ON : ICON_EYE_OFF}
           </button>
-          ${moderationMenuHtml(thread)}
+          ${modBundle ? modBundle.moderationMenuHtml(thread) : ''}
         </div>
         <div class="block-outer">
           <div class="block-outer-main">
@@ -179,7 +223,7 @@ export async function viewThread(threadId, page, focusPost) {
           </div>
         </div>
         <div class="block-body" id="post-list">
-          ${posts.map((p) => postHtml(p, thread, res.pagination ? res.pagination.current_page : 1)).join('')}
+          ${posts.map((p, idx) => postHtml(p, thread, currentPageNum, 'thread', { aboveFold: idx === 0 })).join('')}
         </div>
         <div class="block-outer block-outer--bottom" id="pager-slot">
           <div class="block-outer-main">
@@ -189,7 +233,7 @@ export async function viewThread(threadId, page, focusPost) {
       </div>
       <div id="reply-block">
         ${
-          canReply
+          canReply && editorMod
             ? `<form id="reply-form" class="block js-quickReply">
                  <div class="block-container">
                    <div class="block-body">
@@ -198,7 +242,7 @@ export async function viewThread(threadId, page, focusPost) {
                          ${quickReplyUserHtml()}
                          <div class="message-cell message-cell--main">
                            <div class="message-editorWrapper">
-                             ${editorHtml('reply-message', '', 'Nội dung trả lời (BBCode)…', { thread_id: threadId })}
+                             ${editorMod.editorHtml('reply-message', '', 'Nội dung trả lời (BBCode)…', { thread_id: threadId })}
                              <div class="formButtonGroup">
                                <button class="button button--small editor-attach-button" type="button" title="Đính kèm tệp" aria-label="Đính kèm tệp">${ICON_ATTACH}<span class="button-text">Đính kèm tệp</span></button>
                                <div class="formButtonGroup-primary">
@@ -216,11 +260,11 @@ export async function viewThread(threadId, page, focusPost) {
         }
       </div>`;
 
-    wireEditor(app);
+    if (editorMod) editorMod.wireEditor(app);
     wireMemberTooltips(app, posts.map((post) => post.User));
     wireThreadRowBans(document.getElementById('post-list'), posts.map((post) => post.User));
-    wireThreadActions(threadId, posts, thread, res.pagination ? res.pagination.current_page : 1);
-    wireModeration(thread, () => navigate(threadPath(thread), { replace: true }));
+    wireThreadActions(threadId, posts, thread, currentPageNum, editorMod);
+    if (modBundle) modBundle.wireModeration(thread, () => navigate(threadPath(thread), { replace: true }));
     wireSignatureToggles(app);
     wirePageJump((p) => withPage(threadPath(thread), p));
     wireScrollArm();
@@ -238,7 +282,7 @@ export async function viewThread(threadId, page, focusPost) {
         const more = next.posts || [];
         if (!list || !more.length) return 0;
         registerAttachments(more);
-        list.insertAdjacentHTML('beforeend', more.map((post) => postHtml(post, thread, p)).join(''));
+        list.insertAdjacentHTML('beforeend', more.map((post) => postHtml(post, thread, p, 'thread', { aboveFold: false })).join(''));
         wireThreadRowBans(list, more.map((post) => post.User));
         wireSignatureToggles(list);
         hydrateReactionLists(list);
@@ -263,7 +307,7 @@ export async function viewThread(threadId, page, focusPost) {
   }
 }
 
-function wireThreadActions(threadId, posts, thread, page = 1) {
+function wireThreadActions(threadId, posts, thread, page = 1, editorMod = null) {
   postIndex.clear();
   for (const post of posts) postIndex.set(post.post_id, post);
   const byId = { get: (id) => postIndex.get(id) };
@@ -285,6 +329,7 @@ function wireThreadActions(threadId, posts, thread, page = 1) {
     if (postNumberLink) {
       // The jump is left to the browser (the href is the real permalink); the popup only adds the copy actions,
       // so preventDefault is deliberately not called.
+      const { openPostNumberPopup } = await import('../ui/postNumberPopup.js');
       openPostNumberPopup(
         postNumberLink,
         thread,
@@ -294,7 +339,8 @@ function wireThreadActions(threadId, posts, thread, page = 1) {
       return;
     }
 
-    const bookmarkBtn = event.target.closest('[data-bookmark]');    if (bookmarkBtn) {
+    const bookmarkBtn = event.target.closest('[data-bookmark]');
+    if (bookmarkBtn) {
       event.preventDefault();
       if (!state.loggedIn) return navigate('/login');
       if (bookmarkBtn.disabled) return;
@@ -385,7 +431,13 @@ function wireThreadActions(threadId, posts, thread, page = 1) {
     if (editLink) {
       event.preventDefault();
       const post = byId.get(Number(editLink.dataset.edit));
-      if (post) openInlineEdit(post, thread, page);
+      if (post) {
+        const [{ openInlineEdit }] = await Promise.all([
+          import('../ui/inlineEdit.js'),
+          ensureStylesheet('/assets/css/editor.css'),
+        ]);
+        openInlineEdit(post, thread, page);
+      }
       return;
     }
 
@@ -415,6 +467,7 @@ function wireThreadActions(threadId, posts, thread, page = 1) {
     const warnLink = event.target.closest('[data-warn]');
     if (warnLink) {
       event.preventDefault();
+      const { openWarnModal } = await import('../ui/threadModeration.js');
       openWarnModal(Number(warnLink.dataset.warn), () => reload(page, null));
     }
   };
@@ -476,7 +529,7 @@ function wireThreadActions(threadId, posts, thread, page = 1) {
         });
         const payload = await res.json();
         if (!res.ok) throw new ApiError(res.status, payload);
-        clearEditorDraft(textarea);
+        editorMod?.clearEditorDraft(textarea);
         toast('Đã gửi trả lời');
         navigate(`${withPage(threadPath(thread), res.pagination ? res.pagination.last_page : 1)}?post=${payload.post.post_id}`);
         await viewThread(threadId, 'last', payload.post.post_id);

@@ -1,15 +1,16 @@
-import { app } from '../core/dom.js';
+import { app, ensureStylesheet } from '../core/dom.js';
 import { esc } from '../core/utils.js';
 import { forumPath, threadPath } from '../core/paths.js';
 import { navigate } from '../core/nav.js';
 import { api } from '../api.js';
 import { setBreadcrumbs } from '../ui/chrome.js';
 import { setTitle } from '../ui/title.js';
-import { requireLogin } from '../ui/session.js';
+import { ensureSession, requireLogin } from '../ui/session.js';
 import { editorHtml, wireEditor, clearEditorDraft } from '../ui/editor.js';
 import { loading, errorBox, toast } from '../ui/feedback.js';
 
 export async function viewCompose(nodeId) {
+  await Promise.all([ensureSession(), ensureStylesheet('/assets/css/editor.css')]);
   if (!requireLogin()) return;
   setTitle('Post thread');
   loading();

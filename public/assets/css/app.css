@@ -54,6 +54,12 @@
   --surface-code: #edf0f5;         /* <pre> and atomic BBCode blocks */
   --surface-editor-panel: #f4f6fb;
   --surface-quote: #eef3f9;        /* blockquote inside the editor preview */
+  --editor-bg: #eff0f0;            /* editor surface, one step below --content-bg like voz.vn */
+  --editor-more-bg: #e7e8e9;       /* the expanding "more" row inside the toolbar */
+  --editor-submit-bg: #407bc9;     /* popup action button, sampled from voz.vn */
+  --editor-submit-hover: #3569ad;
+  --editor-button-fg: rgba(18, 38, 64, .85);
+  --editor-button-hover-bg: rgba(64, 123, 201, .15);
   --border-code: #a3adc0;
   --border-atomic: #8999b4;
 
@@ -137,6 +143,12 @@
   --surface-code: #25292a;
   --surface-editor-panel: #252829;
   --surface-quote: #292e2f;
+  --editor-bg: #1b1e1f;
+  --editor-more-bg: #17191a;
+  --editor-submit-bg: #407bc9;
+  --editor-submit-hover: #3569ad;
+  --editor-button-fg: #c8ced8;
+  --editor-button-hover-bg: rgba(138, 180, 248, .18);
   --border-code: #4b5354;
   --border-atomic: #5a6364;
 
@@ -167,6 +179,73 @@
   --node-icon: #7d8590;
 }
 
+/* Catppuccin Mocha — dark palette. Resolves to data-theme="dark", so every stock dark rule
+   (media dimming, link overrides) applies; these overrides re-point the tokens on top of it. */
+:root[data-theme-mode="catppuccin-mocha"] {
+  --header-bg: #11111b;
+  --nav-bg: #11111b;
+  --chrome-page-bg: #11111b;
+  --block-header-bg: #89b4fa;
+  --block-header-hover: #74a8fc;
+  --block-header-fg: #11111b;
+  --link: #89b4fa;
+  --link-hover: #fab387;
+  --accent-text: #fab387;
+  --text: #cdd6f4;
+  --dimmed: #a6adc8;
+  --dimmed-2: #bac2de;
+  --page-bg: var(--chrome-page-bg);
+  --content-bg: #1e1e2e;
+  --content-bg-alt: #181825;
+  --border: #45475a;
+  --border-faint: #313244;
+  --quote-bg: #313244;
+  --quote-border: #fab387;
+
+  --surface: #313244;
+  --surface-sunken: #181825;
+  --surface-raised: #45475a;
+  --surface-hover: #3a3e58;
+  --surface-accent: #2a3450;
+  --surface-accent-hover: #334062;
+  --surface-tint: #3d4266;
+  --surface-code: #181825;
+  --surface-editor-panel: #181825;
+  --surface-quote: #313244;
+  --editor-bg: #11111b;
+  --editor-more-bg: #0d0d16;
+  --editor-submit-bg: #89b4fa;
+  --editor-submit-hover: #74a8fc;
+  --editor-button-fg: #bac2de;
+  --editor-button-hover-bg: rgba(137, 180, 250, .18);
+  --border-code: #585b70;
+  --border-atomic: #6c7086;
+
+  --unread-bg: #3a3040;
+  --unread-bg-strong: #453642;
+  --info-bg: #27324a;
+  --danger-text: #f38ba8;
+  --danger-text-strong: #f17499;
+  --danger-bg: #402836;
+  --danger-border: #7a4257;
+  --success-text: #a6e3a1;
+  --success-text-strong: #a6e3a1;
+  --success-bg: #273a2c;
+  --success-border: #46614a;
+
+  --chip-bg: #313244;
+  --on-accent: #11111b;
+  --shadow-menu: 0 6px 20px rgba(0, 0, 0, .55);
+  --shadow-card: 0 4px 16px rgba(0, 0, 0, .55);
+  --shadow-pop: 0 3px 7px rgba(0, 0, 0, .45);
+  --shadow-fab: 0 2px 8px rgba(0, 0, 0, .55);
+  --shadow-avatar: inset 0 0 0 1px rgba(255, 255, 255, .12);
+  --scrim: rgba(0, 0, 0, .66);
+
+  --focus-ring: #b4befe;
+  --node-icon: #6c7086;
+}
+
 * { box-sizing: border-box; }
 
 html { background: var(--page-bg); }
@@ -178,6 +257,7 @@ html { scroll-padding-top: var(--chrome-h, 0px); }
 body {
   margin: 0;
   font-family: var(--font);
+  font-size-adjust: from-font;
   font-size: calc(16px * var(--ui-scale));
   line-height: 1.5;
   color: var(--text);
@@ -186,6 +266,10 @@ body {
 
 a { color: var(--link); text-decoration: none; }
 a:hover { color: var(--link-hover); }
+
+/* Banned ("KIA") accounts: voz strikes the name through. `!important` because every contextual link rule
+   (.structItem-minor a, .contentRow-minor--hideLinks a, …) resets text-decoration at higher specificity. */
+.username--banned { text-decoration: line-through !important; }
 
 img { max-width: 100%; }
 
@@ -227,7 +311,8 @@ img { max-width: 100%; }
    reacts to the resolved theme and to the data-font attribute. */
 
 /* Native widgets (controls, scrollbars, canvas). JS also sets color-scheme; this is the no-JS fallback. */
-:root { color-scheme: light; }
+:root { color-scheme: light dark; }
+:root[data-theme="light"] { color-scheme: light; }
 :root[data-theme="dark"] { color-scheme: dark; }
 
 /* Slightly dim media on the dark surface — never invert. Kept mild to keep colour accuracy. */
@@ -266,6 +351,33 @@ img { max-width: 100%; }
 
 /* Selection colour follows the accent in both themes. */
 :root[data-theme="dark"] ::selection { background: #414849; color: var(--text); }
+:root[data-theme-mode="catppuccin-mocha"] ::selection { background: #45475a; }
+
+/* Prefix labels are hardcoded voz colours in avatar.css; Catppuccin re-tints them with its own
+   accents — coloured text on a soft tint of the same hue. */
+:root[data-theme-mode="catppuccin-mocha"] .label--red { color: #f38ba8; background: rgba(243, 139, 168, .15); border-color: rgba(243, 139, 168, .45); }
+:root[data-theme-mode="catppuccin-mocha"] .label--green { color: #a6e3a1; background: rgba(166, 227, 161, .15); border-color: rgba(166, 227, 161, .45); }
+:root[data-theme-mode="catppuccin-mocha"] .label--royalBlue { color: #89b4fa; background: rgba(137, 180, 250, .15); border-color: rgba(137, 180, 250, .45); }
+:root[data-theme-mode="catppuccin-mocha"] .label--orange,
+:root[data-theme-mode="catppuccin-mocha"] .label--accent { color: #fab387; background: rgba(250, 179, 135, .15); border-color: rgba(250, 179, 135, .45); }
+:root[data-theme-mode="catppuccin-mocha"] .label--olive { color: #f9e2af; background: rgba(249, 226, 175, .15); border-color: rgba(249, 226, 175, .45); }
+:root[data-theme-mode="catppuccin-mocha"] .label--gray { color: #a6adc8; background: rgba(166, 173, 200, .15); border-color: rgba(166, 173, 200, .45); }
+
+/* Sticky thread titles use a hardcoded orange in dark mode; Mocha gets its peach. */
+:root[data-theme-mode="catppuccin-mocha"] .structItemContainer-group--sticky .structItem-title a { color: #fab387; }
+
+/* The thread-title header (post.css) and the screenshot band that mirrors it draw their text straight
+   on the page — no blue fill — so they keep Mocha's light text instead of the dark header fg. */
+:root[data-theme-mode="catppuccin-mocha"] .block--messages > .block-header,
+:root[data-theme-mode="catppuccin-mocha"] .screenshot-title { color: var(--text); }
+
+/* Chips that fill with the header blue but paint their glyph with --on-dark (white, frozen for the
+   dark chrome) need the dark-on-accent pair instead, like the editor submit button. */
+:root[data-theme-mode="catppuccin-mocha"] .node-icon,
+:root[data-theme-mode="catppuccin-mocha"] .pageNav span.current,
+:root[data-theme-mode="catppuccin-mocha"] .pageNav-scrollBtn.is-active,
+:root[data-theme-mode="catppuccin-mocha"] .infinite-stop,
+:root[data-theme-mode="catppuccin-mocha"] .button--primary { color: var(--on-accent); }
 
 /* ==== layout.css ==== */
 /* Page chrome: header, nav, body wrapper, blocks, footer. */
@@ -390,6 +502,10 @@ img { max-width: 100%; }
   max-width: var(--max-width);
   margin: 0 auto;
   padding: 14px 12px 40px;
+  /* Every view replaces #app's innerHTML in one write. Scroll anchoring then picks a node inside the outgoing
+     view and scrolls to keep it in place, so the list visibly jumped before the new page settled. With
+     anchoring off, the router owns the scroll position alone. */
+  overflow-anchor: none;
 }
 .p-breadcrumbs {
   font-size: calc(14px * var(--ui-scale));
@@ -502,6 +618,11 @@ img { max-width: 100%; }
 /* ---------- thread list (XenForo structItem table) ---------- */
 .structItemContainer { list-style: none; margin: 0; padding: 0; width: 100%; }
 .structItemContainer-group { display: block; }
+/* Defer layout and paint of below-the-fold thread rows (`defer-rendering-heavy-content`). */
+#thread-rows .structItem:nth-child(n + 14) {
+  content-visibility: auto;
+  contain-intrinsic-size: auto none auto 62px;
+}
 .structItem {
   display: table;
   table-layout: fixed;
@@ -528,8 +649,11 @@ img { max-width: 100%; }
 :root[data-theme="dark"] .structItem-cell--latest a { color: var(--text); }
 .structItem-cell--latest a:hover { color: var(--link-hover); }
 .structItem-iconContainer { position: relative; }
+/* voz sizes thread-list avatars by column, not by the generic avatar--* scale: 36px at the start of the row and
+   24px for the latest-poster thumbnail. The .avatar.avatar--* pairs outrank `avatar.css`'s size classes. */
+.structItem-iconContainer .avatar.avatar--s,
 .structItem-iconContainer .avatar { display: block; width: 36px; height: 36px; }
-.structItem-iconContainer .avatar--xxs { width: 24px; height: 24px; }
+.structItem-iconContainer .avatar.avatar--xxs { width: 24px; height: 24px; }
 
 .structItem-title { font-size: calc(16px * var(--ui-scale)); font-weight: 400; margin: 0; padding: 0; line-height: 1.35; }
 .structItem-title .label { font-weight: 400; }
@@ -790,17 +914,69 @@ img { max-width: 100%; }
 .pageNav a.pageNav-author:hover { background: none; color: var(--on-dark); }
 .pageNav-author svg { flex: 0 0 auto; opacity: .8; }
 
+/* ---- contentRow: voz search / member-content list rows (block-row wrapper) ---- */
+.block-row { margin: 0; padding: 6px 10px; }
+.block-row::before, .block-row::after { content: " "; display: table; }
+.block-row::after { clear: both; }
+.block-row.block-row--separated { padding-top: 12px; padding-bottom: 12px; }
+.block-row.block-row--separated + .block-row { border-top: 1px solid var(--border-faint); }
+.block-row.block-row--clickable:hover { background: var(--border-faint); }
+.block-row > p:first-child { margin-top: 0; }
+.block-row > p:last-child { margin-bottom: 0; }
+ul.block-body, ol.block-body { list-style: none; margin: 0; padding: 0; }
+
+.contentRow { display: flex; }
+.contentRow.contentRow--alignMiddle { align-items: center; }
+.contentRow-figure { flex: 0 0 auto; vertical-align: top; white-space: nowrap; text-align: center; }
+.contentRow-figure img, .contentRow-figure .avatar { vertical-align: bottom; }
+.contentRow-main { flex: 1 1 0%; min-width: 0; vertical-align: top; padding-left: 10px; }
+.contentRow-main::before { content: ""; display: block; margin-top: -0.18em; }
+.contentRow-main:first-child { padding-left: 0; }
+.contentRow-main.contentRow-main--close { padding-left: 6px; }
+.contentRow-header { margin: 0; padding: 0; font-weight: 600; font-size: calc(16px * var(--ui-scale)); }
+.contentRow-title { margin: 0; padding: 0; font-weight: 400; font-size: calc(16px * var(--ui-scale)); }
+.contentRow-snippet { margin: 0.25em 0; font-size: calc(15px * var(--ui-scale)); }
+.contentRow-minor { font-size: calc(13px * var(--ui-scale)); color: var(--dimmed); }
+.contentRow-minor.contentRow-minor--hideLinks a { color: inherit; text-decoration: none; }
+.contentRow-minor.contentRow-minor--hideLinks a:hover { text-decoration: underline; }
+.contentRow-minor.contentRow-minor--smaller { font-size: calc(12px * var(--ui-scale)); }
+.contentRow-minor.contentRow-minor--singleLine { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.contentRow-suffix { padding-left: 6px; white-space: nowrap; }
+.contentRow-extra { float: right; padding-left: 6px; font-size: calc(12px * var(--ui-scale)); }
+
+/* Inline meta list inside a contentRow — overrides the flex .listInline used by message attribution. */
+.contentRow-minor .listInline { display: block; list-style: none; margin: 0; padding: 0; }
+.contentRow-minor .listInline > li { display: inline; margin: 0; padding: 0; }
+.contentRow-minor .listInline.listInline--bullet > li + li::before { content: "· "; margin: 0; color: inherit; }
+.contentRow-minor .listInline.listInline--comma > li:nth-last-child(n+2)::after { content: ", "; }
+
+@media (max-width: 650px) {
+  .block-row.block-row--separated { padding: 10px 8px; }
+  .contentRow-title { font-size: calc(15px * var(--ui-scale)); }
+  .contentRow-snippet { font-size: calc(14px * var(--ui-scale)); }
+  .contentRow-minor { font-size: calc(12px * var(--ui-scale)); }
+}
+
 /* ==== avatar.css ==== */
 /* Avatars and thread prefix labels. */
 
 /* Avatars: image over a coloured initial, so a 404 still looks right. */
 .avatar {
-  display: inline-block;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
   border-radius: 50%;
+  vertical-align: top;
   overflow: hidden;
   text-decoration: none;
   line-height: 1;
 }
+.avatar.avatar--xxs { width: 24px; height: 24px; font-size: 14px; }
+.avatar.avatar--xs { width: 32px; height: 32px; font-size: 19px; }
+.avatar.avatar--s { width: 48px; height: 48px; font-size: 29px; }
+.avatar.avatar--m { width: 96px; height: 96px; font-size: 58px; }
+.avatar.avatar--l { width: 192px; height: 192px; font-size: 115px; }
+.avatar.avatar--o { width: 384px; height: 384px; font-size: 230px; }
 .avatar-fallback {
   display: flex;
   align-items: center;
@@ -870,6 +1046,13 @@ img { max-width: 100%; }
 .block--messages .block-body { background: transparent; }
 .block--messages > .block-header { background: transparent; padding: 7px 0; }
 
+/* Defer layout and paint of deep below-the-fold posts (`defer-rendering-heavy-content`).
+   Posts 1–8 cover the initial viewport + browser activation margin without immediate unlock reflows. */
+#post-list > .message--post:nth-child(n + 9) {
+  content-visibility: auto;
+  contain-intrinsic-size: auto none auto 280px;
+}
+
 .bbWrapper img.smilie { display: inline-block; vertical-align: text-bottom; max-width: none; margin: 0; }
 
 .member-card { position: fixed; z-index: 150; width: 360px; max-width: calc(100vw - 16px); max-height: calc(100vh - 16px); overflow-y: auto; background: var(--content-bg); color: var(--text); border: 1px solid var(--border); border-radius: 4px; box-shadow: var(--shadow-card); font-size: calc(14px * var(--ui-scale)); }
@@ -880,6 +1063,8 @@ img { max-width: 100%; }
 .member-card-stats { display: flex; justify-content: space-around; text-align: center; padding: 12px 6px; color: var(--dimmed); }
 .member-card-stats strong { display: block; font-size: calc(18px * var(--ui-scale)); font-weight: 400; color: var(--text); }
 .member-card-actions { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-top: 1px solid var(--border); }
+.member-card-banned { margin-top: 4px; font-size: calc(12px * var(--ui-scale)); font-weight: var(--fw-bold); color: #b3261e; }
+:root[data-theme="dark"] .member-card-banned { color: #f2b8b5; }
 
 /* Top row above the first post: page navigator. */
 .block-outer {
@@ -1118,19 +1303,25 @@ img { max-width: 100%; }
   .post-screenshot-button { opacity: .75; }
 }
 
-/* Off-screen capture sheet: the wrapper drawn into the PNG, plus the title band. */
-.screenshot-sheet { color: var(--text); }
+/* Off-screen capture sheet: the wrapper drawn into the PNG, plus the title band. The page backdrop is the dark
+   chrome, so the post card reads as a card sitting on the site rather than on a flat light field. */
+.screenshot-sheet { background: var(--page-bg); color: var(--text); padding: 16px; font-family: var(--font); }
 .screenshot-title {
-  margin: 0 0 12px;
-  padding-bottom: 8px;
-  border-bottom: 2px solid var(--border);
-  font-size: calc(20px * var(--ui-scale));
-  font-weight: var(--fw-bold);
+  /* Mirrors .block--messages > .block-header: no background of its own, near-white text directly on the page
+     backdrop. */
+  margin: 0 0 10px;
+  padding: 7px 0;
+  font-size: calc(19px * var(--ui-scale));
+  font-weight: 400;
   line-height: 1.35;
-  color: var(--text);
+  color: var(--block-header-fg);
 }
 .screenshot-sheet .message { margin: 0; overflow: visible; }
-.screenshot-sheet .message-inner { align-items: flex-start; }
+/* Must stay `stretch`: on narrow widths `.message-inner` is a column, and `flex-start` would shrink-wrap the main
+   cell so a wide child (a [code] block, a long URL) pushes it past the sheet, cropping the capture horizontally. */
+.screenshot-sheet .message-inner { align-items: stretch; }
+/* The control is stripped from the clone, but a leftover list item would hold its gap. */
+.screenshot-sheet .message-attribution-opposite > li:empty { display: none; }
 /* Touch devices have no hover, so the control stays visible. */
 @media (hover: none) {
   .image-download-button { opacity: .75; }
@@ -1310,6 +1501,43 @@ img { max-width: 100%; }
 .bbWrapper img:not(.smilie) { max-width: 100%; height: auto; }
 .bbWrapper .smilie { vertical-align: middle; }
 .bbWrapper .username { color: var(--link); font-weight: var(--fw-bold); }
+
+/* member card banner: white text over image */
+.member-card-header[style*="background-image"] { position: relative; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.55); }
+.member-card-header[style*="background-image"]::before { content: ""; position: absolute; inset: 0; background: rgba(0,0,0,.35); }
+.member-card-header[style*="background-image"] > * { position: relative; }
+.member-card-header[style*="background-image"] .member-card-name,
+.member-card-header[style*="background-image"] .u-dimmed { color: #fff; }
+
+/* Thread moderation menu — voz's "More options" structural menu, anchored under the header button. */
+.block-header { position: relative; }
+.block-header-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 8px;
+  z-index: 60;
+  min-width: 200px;
+  padding: 6px 0;
+  background: var(--content-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .28);
+}
+.block-header-menu[hidden] { display: none; }
+.block-header-menu .menu-content { display: flex; flex-direction: column; padding: 0; }
+.block-header-menu .menu-linkRow {
+  display: block;
+  padding: 7px 12px;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: calc(14px * var(--ui-scale));
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.block-header-menu .menu-linkRow:hover { background: var(--surface-tint); color: var(--link); }
 
 /* ==== media.css ==== */
 /* Unfurl (link preview) cards. post.css sets `height: auto` at (0,2,1), which beats a plain
@@ -1492,33 +1720,57 @@ img { max-width: 100%; }
 
 /* ==== editor.css ==== */
 .reply-submit-row { display: flex; justify-content: flex-end; margin-top: 10px; }
-.rich-editor { border: 1px solid var(--border); border-radius: var(--radius); background: var(--content-bg); overflow: visible; }
+
+/* ---------- quick reply (.js-quickReply) ----------
+   voz.vn wraps the reply editor in the same .message grid as a post: left column with the reader's avatar and the
+   arrow pointing at the editor, right column with the editor and its submit row. */
+.js-quickReply { margin: 0 0 14px; overflow: visible; }
+.js-quickReply .message { margin-bottom: 0; background: transparent; overflow: visible; }
+.js-quickReply .message-cell--user { display: block; position: relative; flex: 0 0 140px; padding: 10px; background: var(--quote-bg); border-radius: 3px 0 0 3px; }
+.js-quickReply .message-user { text-align: center; }
+.js-quickReply .message-avatar { margin-bottom: 0; }
+.js-quickReply .message-avatar-wrapper { position: relative; display: inline-block; vertical-align: bottom; margin-bottom: .5em; }
+.js-quickReply .message-cell--main { padding: 10px; }
+/* Border triangle plus an inner one in the content colour, so only the outer edge shows. */
+.message-userArrow { position: absolute; top: 20px; right: -1px; width: 0; height: 0; border-style: solid; border-width: 10px 10px 10px 0; border-color: transparent var(--border) transparent transparent; }
+.message-userArrow::after { content: ''; position: absolute; top: -9px; right: -10px; border-style: solid; border-width: 9px 9px 9px 0; border-color: transparent var(--content-bg) transparent transparent; }
+.formButtonGroup { display: flex; flex-wrap: wrap; align-items: center; margin-top: 10px; margin-bottom: -5px; }
+.formButtonGroup-primary { order: 2; margin-left: auto; margin-bottom: 5px; display: flex; align-items: center; }
+.js-quickReply .button--primary { padding: 6px 11px; }
+.js-quickReply .button--primary svg { display: block; }
+
+.rich-editor { position: relative; border: 0; border-radius: var(--radius); background: var(--editor-bg); overflow: visible; }
 .rich-editor [hidden] { display: none !important; }
-.rich-editor .editor-toolbar { position: relative; display: flex; flex-wrap: nowrap; gap: 0; margin: 0; padding: 5px 6px; min-height: 43px; background: var(--content-bg-alt); border-bottom: 1px solid var(--border); border-radius: var(--radius) var(--radius) 0 0; align-items: center; }
+.rich-editor .editor-toolbar { position: relative; display: flex; flex-wrap: wrap; gap: 0; margin: 0; padding: 0; min-height: 41px; background: transparent; border-bottom: 0; border-radius: var(--radius) var(--radius) 0 0; align-items: center; }
 .rich-editor button, .rich-editor select, .rich-editor input { font: inherit; }
 .rich-editor button { cursor: pointer; }
 .rich-editor button:disabled { opacity: .35; cursor: default; }
 .rich-editor button:focus-visible, .rich-editor select:focus-visible, .rich-editor input:focus-visible { outline: 2px solid var(--link); outline-offset: -2px; }
-.rich-editor .editor-toolbar button { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 32px; padding: 6px; border: 0; border-radius: 2px; background: transparent; color: var(--text); flex: 0 0 auto; }
-.rich-editor .editor-toolbar button:hover:not(:disabled), .rich-editor .editor-toolbar button[aria-expanded="true"], .rich-editor button[aria-pressed="true"] { background: var(--surface-tint); color: var(--link); }
-.rich-editor .editor-toolbar svg { width: 18px; height: 18px; flex: 0 0 auto; pointer-events: none; }
+.rich-editor .editor-toolbar button { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 32px; margin: 2px 1px; padding: 0; border: 0; border-radius: 4px; background: transparent; color: var(--editor-button-fg); flex: 0 0 auto; transition: background-color .25s, color .25s; }
+.rich-editor .editor-toolbar button:hover:not(:disabled), .rich-editor .editor-toolbar button[aria-expanded="true"], .rich-editor button[aria-pressed="true"] { background: var(--editor-button-hover-bg); color: var(--editor-button-fg); }
+/* Same box as voz.vn: a 24x16 sprite area centred in the 30x32 button, filled glyphs. */
+.rich-editor .editor-toolbar svg { width: 24px; height: 16px; flex: 0 0 auto; pointer-events: none; }
 .rich-editor .editor-toolbar .editor-more { width: 22px; }
-.editor-group { display: flex; align-items: center; padding: 0 5px; border-right: 1px solid var(--border); }
-.editor-group:first-child { padding-left: 0; }
-.editor-group:last-of-type { border-right: 0; }
-.editor-history { margin-left: auto; border-left: 1px solid var(--border); }
-.editor-preview-toggle { border-right: 0; padding-right: 0; }
-.editor-overflow { position: absolute; z-index: 20; top: calc(100% + 1px); left: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 3px; max-width: 100%; padding: 6px; border: 1px solid var(--border); border-radius: 0 0 3px 3px; background: var(--content-bg); box-shadow: var(--shadow-pop); }
-.editor-overflow[data-menu-panel="rich"] { left: min(90px, 10%); }
-.editor-overflow[data-menu-panel="misc"] { left: auto; right: 0; width: 255px; }
-.editor-menu-icons { display: flex; }
+.editor-group { display: flex; align-items: center; padding: 4px 12px 0; }
+.editor-group:first-child { padding-left: 12px; }
+.editor-history { margin-left: auto; }
+/* voz.vn opens the "more" buttons as a second row *inside* the toolbar, not a floating panel: the row grows from
+   height 0 and the editor slides down with it. */
+.editor-overflow { flex: 0 0 100%; order: 99; display: flex; flex-wrap: wrap; align-items: center; gap: 0; width: 100%; margin: 0; padding: 0 12px; overflow: hidden; border-radius: 0 0 var(--radius) var(--radius); background: var(--editor-more-bg); transition: height .25s ease; }
+/* The row's buttons sit where their toggle sits: voz pads the row to that offset, we align to the group. */
+.editor-overflow[data-menu-panel="rich"] { padding-left: 80px; }
+.editor-overflow[data-menu-panel="misc"] { justify-content: flex-end; }
+.editor-menu-icons { display: flex; align-items: center; }
 .rich-editor .editor-option { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 32px; margin: 0; }
 .editor-option:hover { background: var(--surface-tint); }
 .editor-option select, .editor-option input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
 .editor-option:focus-within { outline: 2px solid var(--link); outline-offset: -2px; }
 .rich-editor .editor-toolbar .editor-drafts button { width: auto; height: auto; padding: 7px 8px; font-size: calc(12px * var(--ui-scale)); }
-.editor-drafts { width: 100%; border-top: 1px solid var(--border); display: flex; }
-.editor-visual, .rich-editor .editor-source { border: 0; border-radius: 0; min-height: 190px; max-height: 70vh; overflow: auto; padding: 12px; line-height: 1.6; width: 100%; font-size: calc(15px * var(--ui-scale)); outline-offset: -2px; }
+.editor-drafts { display: flex; gap: 6px; align-items: center; padding: 0 8px; }
+
+.editor-visual, .rich-editor .editor-source { border: 0; border-radius: 0; min-height: 190px; max-height: 70vh; overflow: auto; padding: 10px 20px 20px; line-height: 1.5; width: 100%; font-size: calc(15px * var(--ui-scale)); outline-offset: -2px; background: transparent; }
+/* voz.vn's quick reply box is short by default and grows with what is typed. */
+.js-quickReply .editor-visual, .js-quickReply .rich-editor .editor-source { min-height: 100px; }
 .editor-visual { overflow-wrap: anywhere; white-space: pre-wrap; }
 .editor-visual:empty::before { content: attr(data-placeholder); color: var(--dimmed); pointer-events: none; }
 .rich-editor .editor-source { font-family: ui-monospace, Consolas, monospace; resize: vertical; }
@@ -1540,23 +1792,54 @@ img { max-width: 100%; }
 .editor-atomic { display: inline-block; max-width: 100%; padding: 3px 6px; background: var(--surface-code); border: 1px dashed var(--border-atomic); font-family: ui-monospace, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
 .editor-visual table, .editor-preview table { border-collapse: collapse; margin: 6px 0; max-width: 100%; }
 .editor-visual td, .editor-visual th, .editor-preview td, .editor-preview th { border: 1px solid var(--border-code); padding: 5px 10px; min-width: 36px; }
-.editor-panel { display: flex; gap: 8px; flex-wrap: wrap; align-items: end; padding: 10px; background: var(--surface-editor-panel); border-bottom: 1px solid var(--border); }
-.editor-panel label { flex: 1 1 180px; margin: 0; font-size: calc(13px * var(--ui-scale)); }
-.editor-panel input { display: block; width: 100%; padding: 6px; border: 1px solid var(--border); }
-.editor-panel button, .editor-footer button { padding: 5px 8px; border: 1px solid var(--border); border-radius: 3px; background: var(--surface); color: var(--text); }
-.editor-panel [role="alert"] { color: var(--danger-text); font-size: calc(12px * var(--ui-scale)); }
-.editor-smilies { display: flex; flex-wrap: wrap; gap: 3px; max-height: 210px; overflow-y: auto; width: 100%; }
-.editor-smilies button { display: inline-flex; align-items: center; justify-content: center; min-width: 32px; min-height: 32px; padding: 2px; border-radius: 4px; transition: transform .15s, background-color .15s; }
-/* Same pop-on-hover feedback as the sticker grid. */
-.editor-smilies button:hover { transform: scale(1.25); background: var(--surface-tint); }
-/* voz.vn caps picker smilies at 32px, so the 24px sources stay sharp. */
-.editor-smilies img { display: block; width: auto; height: auto; max-width: 32px; max-height: 32px; object-fit: contain; }
+/* Every tool opens a floating card below the toolbar, like voz.vn: the editor never moves. */
+.editor-panel { position: absolute; top: var(--editor-toolbar-h, 41px); left: 12px; z-index: 30; display: block; width: 260px; max-width: calc(100vw - 24px); margin: 0; padding: 0; border: 0; background: transparent; }
+.editor-panel[data-panel-kind="smilies"] { width: 412px; }
+/* The sticker picker brings its own frame, so the panel supplies only spacing and a card. */
+.editor-panel[data-panel-kind="stickers"] { width: 520px; max-width: calc(100vw - 24px); padding: 10px; border-radius: 6px; background: var(--content-bg); box-shadow: 0 3px 5px -1px rgba(0,0,0,.2), 0 6px 10px 0 rgba(0,0,0,.14), 0 1px 18px 0 rgba(0,0,0,.12); }
+.editor-panel:empty { display: none; }
+/* voz.vn's editor popups: a 6px-radius card on --content-bg with a three-layer material shadow, an 8px grip at the
+   top and 10px of padding around the body. */
+.editor-popup { position: relative; min-width: 260px; width: 100%; border-radius: 6px; background: var(--content-bg); box-shadow: 0 3px 5px -1px rgba(0,0,0,.2), 0 6px 10px 0 rgba(0,0,0,.14), 0 1px 18px 0 rgba(0,0,0,.12); }
+.editor-popup::before { content: ''; display: block; width: 60px; height: 8px; }
+.editor-popup-body { padding: 0 10px 10px; }
+.editor-popup--emoji { min-width: 0; width: 100%; max-width: none; }
+.editor-popup--emoji .editor-popup-body { padding: 6px; }
+/* Floating-label field: the label rests on the field and shrinks to the top edge once it has content. */
+.editor-field { position: relative; padding: 18px 0 8px; }
+.editor-field input {
+  display: block;
+  width: 100%;
+  padding: 6px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--content-bg-alt);
+  color: var(--text);
+  font: inherit;
+  font-size: calc(15px * var(--ui-scale));
+}
+.editor-field label { position: absolute; top: 2px; left: 4px; padding: 0 4px; color: var(--dimmed); font-size: calc(11px * var(--ui-scale)); line-height: 1.2; pointer-events: none; transition: color .15s; }
+.editor-field:focus-within label { color: var(--link); }
+.editor-field input:focus { outline: 0; }
+.editor-field input:focus-visible { box-shadow: inset 0 0 0 2px var(--link); }
+.editor-popup-actions { display: flex; justify-content: flex-start; padding-top: 2px; }
+.editor-popup-submit { padding: 6px 11px; border: 0; border-radius: 4px; background: var(--editor-submit-bg); color: var(--on-dark); font: inherit; font-size: calc(14px * var(--ui-scale)); line-height: 1.5; cursor: pointer; }
+.editor-popup-submit:hover { background: var(--editor-submit-hover); }
+.editor-popup-alert { display: block; padding-top: 6px; color: var(--danger-text); font-size: calc(12px * var(--ui-scale)); line-height: 1.5; }
+.editor-popup-alert:empty { display: none; }
+.editor-footer button { padding: 5px 8px; border: 1px solid var(--border); border-radius: 3px; background: var(--surface); color: var(--text); }
+/* Copied from voz.vn's .emojiList: a flex-wrapped list of 32px cells with 3px gaps and a 4px hover radius.
+   Images are drawn at their natural size capped at 32px, so 24px smilies stay 24px and 48px sources render 32px —
+   voz shows exactly these two sizes, not one uniform box. */
+.editor-smilies { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 0; width: 100%; max-height: 215px; margin: 0 -3px -3px 0; padding: 0; overflow-y: auto; }
+.editor-smilies button { display: flex; align-items: center; justify-content: center; min-width: 32px; width: auto; height: 32px; margin: 0 3px 3px 0; padding: 0; border: 0; border-radius: 4px; background: transparent; font-size: 24px; cursor: pointer; overflow: hidden; }
+.editor-smilies button:hover, .editor-smilies button:focus { background: var(--surface-accent); }
+.editor-smilies img { width: auto; height: auto; max-width: 32px; max-height: 32px; }
 .editor-status { display: block; min-height: 0; padding: 0 8px; text-align: right; font-size: calc(10px * var(--ui-scale)); line-height: 1.6; color: var(--dimmed); }
-/* pik.vn upload strip inside the shared image panel. Scoped to .editor-panel because
-   `.editor-panel label` is more specific than a bare `.editor-upload-drop`. */
+/* pik.vn upload strip inside the image popup. */
 .editor-upload-slot { display: block; width: 100%; }
 .editor-upload { display: flex; flex-direction: column; gap: 6px; width: 100%; }
-.editor-panel .editor-upload-drop { display: flex; flex: 0 0 auto; flex-direction: row; align-items: center; justify-content: center; gap: 6px; width: auto; margin: 0; padding: 6px 10px; border: 1px dashed var(--border); border-radius: 4px; background: var(--surface); color: var(--text); font-size: calc(12px * var(--ui-scale)); line-height: 1.4; text-align: center; cursor: pointer; }
+.editor-upload-drop { display: flex; flex: 0 0 auto; flex-direction: row; align-items: center; justify-content: center; gap: 6px; width: auto; margin: 0; padding: 6px 10px; border: 1px dashed var(--border); border-radius: 4px; background: var(--surface); color: var(--text); font-size: calc(12px * var(--ui-scale)); line-height: 1.4; text-align: center; cursor: pointer; }
 .editor-upload-drop:hover, .editor-upload-drop.is-over { border-color: var(--link); color: var(--link); }
 .editor-upload-drop.is-busy { opacity: .6; pointer-events: none; }
 .editor-upload-status { font-size: calc(11px * var(--ui-scale)); color: var(--dimmed); }
@@ -1567,11 +1850,11 @@ img { max-width: 100%; }
 .editor-upload-row.is-ok { color: var(--success-text-strong); }
 .editor-upload-row.is-error { color: var(--danger-text); }
 .editor-status:empty { display: none; }
-.editor-hint { margin: 0; padding: 5px 8px; color: var(--dimmed); font-size: calc(11px * var(--ui-scale)); line-height: 1.5; }
 .editor-preview { border-top: 1px solid var(--border); padding: 12px; min-height: 60px; overflow-wrap: anywhere; white-space: pre-wrap; }
 @media (max-width: 600px) {
-  .rich-editor .editor-toolbar { padding: 4px 3px; flex-wrap: wrap; row-gap: 2px; }
-  .editor-group { padding: 0 2px; }
+  .rich-editor .editor-toolbar { padding: 2px 3px 0; flex-wrap: wrap; row-gap: 0; }
+  .editor-group { padding: 0 2px 2px; }
+  /* The history group can only push right on the row it starts; once it wraps it leads the second row. */
   .editor-history { margin-left: auto; }
   .editor-visual { min-height: 160px; }
 }
@@ -1580,6 +1863,60 @@ img { max-width: 100%; }
   .rich-editor .editor-toolbar .editor-more { width: 18px; }
   .editor-group { padding: 0 1px; }
 }
+
+/* Native voz attachment strip under the editor. */
+.attach-strip { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.attach-row { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--content-bg, transparent); font-size: calc(13px * var(--ui-scale)); max-width: 100%; }
+.attach-thumb { width: 32px; height: 32px; object-fit: cover; border-radius: 4px; }
+.attach-name { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.attach-row.is-uploading .attach-state { color: var(--dimmed); }
+.attach-row.is-error { border-color: var(--error, #c33); }
+.attach-row.is-error .attach-state { color: var(--error, #c33); }
+.attach-state [data-attach-remove] { border: 0; background: none; color: var(--dimmed); cursor: pointer; font-size: 16px; line-height: 1; padding: 2px 4px; }
+.attach-state [data-attach-remove]:hover { color: var(--text); }
+
+/* "Đính kèm tệp" — voz's paperclip button, same row as the submit button. */
+.editor-attach-button { order: 1; margin-right: 6px; margin-bottom: 5px; align-self: center; }
+.editor-attach-button svg { width: 1em; height: 1em; flex: 0 0 auto; }
+
+/* Image resize overlay — voz/Froala's .fr-image-resizer, themed with our tokens. */
+.image-resizer {
+  position: fixed;
+  z-index: 900;
+  pointer-events: none;
+  border: 1px dashed var(--link);
+  box-sizing: border-box;
+}
+.image-resizer-handle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: var(--link);
+  border: 1px solid var(--content-bg, #fff);
+  border-radius: 2px;
+  pointer-events: auto;
+  touch-action: none;
+}
+.image-resizer-handle--nw { top: -5px; left: -5px; cursor: nwse-resize; }
+.image-resizer-handle--ne { top: -5px; right: -5px; cursor: nesw-resize; }
+.image-resizer-handle--sw { bottom: -5px; left: -5px; cursor: nesw-resize; }
+.image-resizer-handle--se { bottom: -5px; right: -5px; cursor: nwse-resize; }
+.image-resizer-badge {
+  position: absolute;
+  right: -1px;
+  bottom: -22px;
+  padding: 1px 6px;
+  background: var(--link);
+  color: #0d2137;
+  border-radius: 3px;
+  font-size: calc(11px * var(--ui-scale));
+  line-height: 1.6;
+  white-space: nowrap;
+  pointer-events: auto;
+  cursor: pointer;
+}
+.editor-visual img[data-bb-tag], .editor-visual img[data-bb-attach-id] { cursor: pointer; }
+.editor-visual img.is-image-resizing { outline: 1px dashed var(--link); outline-offset: 0; }
 
 /* ==== account.css ==== */
 /* Direct messages, alerts, user profile, login. */
@@ -1668,6 +2005,337 @@ img { max-width: 100%; }
   word-break: break-all;
 }
 
+/* ---------- profile tabs + wall ---------- */
+.profile-tabs { display: flex; gap: 2px; border-top: 1px solid var(--border); padding: 0 8px; overflow-x: auto; }
+.profile-tab { display: block; padding: 10px 14px; font-size: calc(14px * var(--ui-scale)); color: var(--dimmed); border-bottom: 2px solid transparent; white-space: nowrap; }
+.profile-tab:hover { color: var(--link); }
+.profile-tab.is-active { color: var(--link); font-weight: var(--fw-bold); border-bottom-color: var(--link); }
+.profile-body { padding-top: 0; }
+.profile-post { display: flex; gap: 10px; padding: 4px 0 12px; }
+.profile-post-main { flex: 1; min-width: 0; }
+.profile-comments { list-style: none; margin: 12px 0 0; padding: 12px 0 0; border-top: 1px solid var(--border); display: grid; gap: 12px; }
+.profile-comment { display: flex; gap: 8px; }
+
+/* ---------- member header (voz member page) ---------- */
+.memberHeader { margin-bottom: 0; }
+.memberHeader-main { display: flex; flex-direction: column; justify-content: flex-end; background: var(--content-bg); border-bottom: 1px solid var(--border); border-radius: 3px 3px 0 0; }
+.memberHeader--withBanner .memberHeader-main { min-height: 250px; }
+.memberProfileBanner { background-size: cover !important; background-position-x: center !important; background-repeat: no-repeat !important; }
+.memberHeader-mainContent { position: relative; }
+.memberHeader-avatar { position: absolute; padding: 10px; }
+.memberHeader-avatar .avatar--l { width: 192px; height: 192px; display: inline-block; }
+.memberHeader-avatar .avatar-fallback { width: 100%; height: 100%; font-size: 96px; }
+.memberHeader-content { padding: 10px 10px 10px 212px; }
+.memberHeader-name { margin: -0.15em 0 0; padding: 0; font-weight: 400; font-size: calc(24px * var(--ui-scale)); color: var(--text); }
+.memberHeader--withBanner .memberHeader-name, .memberHeader--withBanner .username { color: #fff; text-shadow: #000 -1px -1px 0, #000 1px -1px 0, #000 -1px 1px 0, #000 1px 1px 0; }
+.memberHeader--withBanner .memberHeader-blurbContainer { color: #fff; background: rgba(0,0,0,.4); border-radius: 4px; padding: 6px; margin-top: 6px; text-shadow: #000 0 0 1px; display: inline-block; }
+.memberHeader--withBanner .memberHeader-blurbContainer a { color: #ccc; }
+.memberHeader-blurb { margin-top: 3px; font-size: calc(14px * var(--ui-scale)); }
+.memberHeader-blurb .pairs dt { color: inherit; opacity: .8; }
+.memberHeader-separator { margin: 10px 0; border: 0; border-top: 1px solid var(--border); }
+.memberHeader-stats { font-size: calc(16px * var(--ui-scale)); }
+.memberHeader-buttons .buttonGroup { display: flex; flex-wrap: wrap; gap: 8px; }
+.pairJustifier { display: flex; flex-wrap: wrap; gap: 12px; }
+.pairs { margin: 0; display: inline-flex; gap: 4px; }
+.pairs--rows { flex-direction: column; text-align: center; }
+.pairs--rows > dt { font-size: 80%; color: var(--dimmed); }
+.pairs--rows > dd { margin: 0; }
+.pairs--inline > dt { color: var(--dimmed); }
+.pairs--inline > dd { margin: 0 8px 0 4px; }
+.pairs--columns > dt { float: left; clear: left; color: var(--dimmed); min-width: 90px; }
+.pairs--columns > dd { margin-left: 100px; }
+.fauxBlockLink-linkRow { color: inherit; }
+
+/* member tabs */
+.block-tabHeader { padding: 0; margin: 0; font-weight: 400; color: var(--dimmed); background: var(--header-bg, transparent); border-bottom: 1px solid var(--border); }
+.block-tabHeader .tabs-tab { font-size: calc(16px * var(--ui-scale)); padding: 6px 10px; display: inline-block; border-bottom: 3px solid transparent; color: inherit; cursor: pointer; }
+.block-tabHeader .tabs-tab:hover { color: var(--link); }
+.block-tabHeader .tabs-tab.is-active { color: var(--link); border-bottom-color: var(--link); }
+.hScroller-scroll { display: block; overflow-x: auto; white-space: nowrap; }
+
+/* profile post comments inside a .message */
+.message-responses { padding-top: 8px; }
+.message-responseRow { padding: 6px 0; }
+.comment-inner { display: flex; gap: 8px; }
+.comment-avatar { flex: 0 0 24px; }
+.comment-avatar .avatar, .comment-avatar img { width: 24px; height: 24px; border-radius: 4px; }
+.comment-main { flex: 1; min-width: 0; }
+.comment-user { font-weight: var(--fw-bold); }
+.comment-body { display: inline; }
+.comment-footer .actionBar { margin-top: 4px; color: var(--dimmed); font-size: calc(12px * var(--ui-scale)); }
+.listInline { list-style: none; margin: 0; padding: 0; display: flex; align-items: center; gap: 8px; }
+.listInline--bullet > li + li::before { content: "·"; margin-right: 8px; color: var(--dimmed); }
+.message-attribution--plain .avatar--xxs, .comment-avatar .avatar--xxs { width: 20px; height: 20px; }
+.attribution { margin: 0; font-size: calc(14px * var(--ui-scale)); font-weight: var(--fw-bold); display: inline; }
+
+@media (max-width: 650px) {
+  .memberHeader-avatar .avatar--l { width: 96px; height: 96px; }
+  .memberHeader-avatar .avatar-fallback { font-size: 48px; }
+  .memberHeader-content { padding-left: 116px; }
+}
+@media (max-width: 480px) {
+  .memberHeader-avatar { display: block; position: static; text-align: center; }
+  .memberHeader-content { padding-left: 10px; }
+}
+
+/* simple message (profile wall): narrow user cell like voz's message--simple */
+.message--simple .message-cell--user { flex: 0 0 82px; }
+.message--simple .message-avatar .avatar { width: 48px; height: 48px; }
+
+/* member header over banner: white text + translucent pills (voz) */
+.memberHeader--withBanner .memberHeader-nameWrapper, .memberHeader--withBanner .memberHeader-blurbContainer { color: #fff; }
+.memberHeader--withBanner .memberHeader-blurbContainer { background: rgba(0,0,0,.4); border-radius: 4px; padding: 6px; margin-top: 6px; text-shadow: #000 0 0 1px; display: inline-block; }
+.memberHeader--withBanner .memberHeader-blurbContainer a { color: #ccc; }
+.memberHeader--withBanner .memberHeader-blurbContainer .pairs dt { color: rgba(255,255,255,.8); }
+
+/* member tabs strip */
+.block-tabHeader--memberTabs { background: var(--overlay-bg, rgba(255,255,255,.06)); border-bottom: 1px solid var(--border); }
+.block-tabHeader--memberTabs .tabs-tab { padding: 8px 12px; }
+
+/* no-banner header: theme surface + themed text */
+.memberHeader:not(.memberHeader--withBanner) .memberHeader-main { min-height: 0; background: var(--content-bg); }
+.memberHeader:not(.memberHeader--withBanner) .memberHeader-name,
+.memberHeader:not(.memberHeader--withBanner) .memberHeader-nameWrapper,
+.memberHeader:not(.memberHeader--withBanner) .memberHeader-blurbContainer { color: var(--text); text-shadow: none; }
+.memberHeader:not(.memberHeader--withBanner) .memberHeader-blurbContainer { background: none; padding: 0; }
+.memberHeader:not(.memberHeader--withBanner) .memberHeader-blurbContainer .pairs dt { color: var(--dimmed); }
+
+/* memberHeader-main is a dark surface only when a banner image exists — keep light text */
+.memberHeader--withBanner .memberHeader-main,
+.memberHeader--withBanner .memberHeader-main .memberHeader-name,
+.memberHeader--withBanner .memberHeader-main .memberHeader-nameWrapper,
+.memberHeader--withBanner .memberHeader-main .memberHeader-blurbContainer { color: #fff; }
+.memberHeader--withBanner .memberHeader-main .memberHeader-blurbContainer .pairs dt { color: rgba(255,255,255,.8); }
+.memberHeader--withBanner .memberHeader-main .memberHeader-blurbContainer a { color: #ccc; }
+
+.formButtonGroup--simple { display: flex; justify-content: flex-end; }
+
+.formButtonGroup--simple { padding-top: 6px; padding-bottom: 6px; margin-top: 0; }
+
+.block-tabHeader--memberTabs { background: transparent; }
+.block-tabHeader--memberTabs .hScroller-scroll { display: flex; }
+.block-tabHeader--memberTabs .tabs-tab { flex: 1; text-align: center; }
+
+/* collapsed quick-reply placeholder (voz) */
+.editorPlaceholder-placeholder { padding: 0; }
+.editorPlaceholder-placeholder .input { display: block; padding: 7px 10px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--content-bg); color: var(--dimmed); font-size: calc(15px * var(--ui-scale)); cursor: text; }
+.editorPlaceholder-placeholder .input:hover { border-color: var(--link); }
+.u-muted { color: var(--dimmed); }
+.editorPlaceholder .is-hidden, .editorPlaceholder-placeholder.is-hidden { display: none !important; }
+
+/* voz block radius helpers */
+.block-topRadiusContent > .block-body .message--quickReply, .block-topRadiusContent.message--quickReply { border-radius: var(--radius) var(--radius) 0 0; }
+.block-bottomRadiusContent { border-radius: 0 0 var(--radius) var(--radius); }
+.block-topRadiusContent.block-bottomRadiusContent { border-radius: var(--radius); }
+
+/* gap between profile composer and posts — show page bg like voz */
+.block--messages .message--quickReply { margin-bottom: 8px; }
+.block--messages + .block--messages { margin-top: 8px; }
+
+/* tighter profile composer gap — hairline like voz */
+.block--messages .message--quickReply { margin-bottom: 0; }
+.block--messages + .block--messages { margin-top: 0; }
+.message--quickReply { border-bottom: 1px solid var(--border); }
+
+/* kill generic block margin on profile composer wrapper */
+.block--messages:has(#wall-post-form) { margin-bottom: 0; }
+
+/* gap between profile composer and first post — show page bg */
+.block--messages:has(#wall-post-form) { margin-bottom: 8px; }
+
+/* banner: force userTitle + blurb pure white */
+.memberHeader--withBanner .memberHeader-blurb, .memberHeader--withBanner .memberHeader-blurb .userTitle { color: #fff; }
+.memberHeader--withBanner .memberHeader-blurbContainer .memberHeader-blurb { color: #fff; }
+
+/* mobile: undo desktop simple-message narrowing — cell becomes a row */
+@media (max-width: 620px) {
+  .message--simple .message-cell--user { flex: 0 0 auto; }
+}
+
+/* mobile member header (voz): avatar centered, info stacked centered */
+@media (max-width: 480px) {
+  .memberHeader-avatar { position: static; display: block; text-align: center; padding: 10px 10px 0; }
+  .memberHeader-avatar .avatar--l { width: 96px; height: 96px; }
+  .memberHeader-avatar .avatar-fallback { font-size: 58px; }
+  .memberHeader-content { padding: 0 10px 10px; }
+  .memberHeader-content--info { display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .memberHeader-name { text-align: center; }
+  .memberHeader-blurbContainer { display: block; width: 100%; text-align: center; }
+  .memberHeader-badges { display: flex; justify-content: center; gap: 4px; flex-wrap: wrap; }
+  .pairJustifier { justify-content: space-around; }
+}
+
+/* mobile member buttons: compact, drop voz.vn link */
+@media (max-width: 480px) {
+  .memberHeader-buttons .buttonGroup { gap: 4px; }
+  .memberHeader-buttons .button { padding: 4px 8px; font-size: calc(13px * var(--ui-scale)); }
+  .memberHeader-buttons a[href^="https://voz.vn"] { display: none; }
+}
+
+/* mobile member buttons: one row, scroll */
+@media (max-width: 480px) {
+  .memberHeader-buttons .buttonGroup { flex-wrap: nowrap; overflow-x: auto; gap: 4px; }
+  .memberHeader-buttons .buttonGroup .buttonGroup-buttonWrapper { display: inline-flex; gap: 4px; flex: 0 0 auto; }
+  .memberHeader-buttons .button { white-space: nowrap; flex: 0 0 auto; }
+}
+
+/* memberHeader buttons — voz layout: dm left, buttonGroup-buttonWrapper right, fused */
+.memberHeader-buttons { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.memberHeader-buttons .buttonGroup { display: contents; }
+.memberHeader-buttons .buttonGroup-buttonWrapper { display: inline-flex; flex: 0 0 auto; }
+.memberHeader-buttons .buttonGroup-buttonWrapper .button + .button { border-left: 0; }
+.memberHeader-buttons .buttonGroup-buttonWrapper .button:first-child { border-radius: 4px 0 0 4px; }
+.memberHeader-buttons .buttonGroup-buttonWrapper .button:last-child { border-radius: 0 4px 4px 0; }
+.memberHeader-buttons a[href^="https://voz.vn"] { display: none; }
+
+/* tighter fused member buttons on small screens */
+@media (max-width: 480px) {
+  .memberHeader-buttons .buttonGroup-buttonWrapper .button { padding: 4px 7px; font-size: calc(12px * var(--ui-scale)); }
+  .memberHeader-buttons > .buttonGroup > .button { padding: 4px 8px; font-size: calc(12px * var(--ui-scale)); }
+}
+
+/* memberHeader buttons — exact voz layout: block container, inline-block fused groups, floated buttons */
+.memberHeader-buttons { display: block; }
+.memberHeader-buttons .buttonGroup { display: inline-block; vertical-align: top; }
+.memberHeader-buttons .buttonGroup + .buttonGroup { margin-left: 10px; }
+.memberHeader-buttons .buttonGroup .button { float: left; padding: 6px 11px; font-size: calc(14px * var(--ui-scale)); }
+.memberHeader-buttons .buttonGroup-buttonWrapper { display: block; float: left; }
+.memberHeader-buttons .buttonGroup-buttonWrapper .button { float: left; }
+.memberHeader-buttons .buttonGroup-buttonWrapper .button + .button { border-left: 0; }
+.memberHeader-buttons .buttonGroup-buttonWrapper .button:first-child { border-radius: 4px 0 0 4px; }
+.memberHeader-buttons .buttonGroup-buttonWrapper .button:last-child { border-radius: 0 4px 4px 0; }
+.memberHeader-buttons a[href^="https://voz.vn"] { display: none; }
+
+/* fused borders between first button and wrapper button inside a group */
+.memberHeader-buttons .buttonGroup > .button { border-radius: 4px 0 0 4px; }
+.memberHeader-buttons .buttonGroup-buttonWrapper > .button:first-child { border-radius: 0; border-left: 0; }
+.memberHeader-buttons .buttonGroup-buttonWrapper > .button:last-child { border-radius: 0 4px 4px 0; }
+
+/* prevent wrap inside a memberHeader button group */
+.memberHeader-buttons .buttonGroup { display: inline-flex; }
+.memberHeader-buttons .buttonGroup .button, .memberHeader-buttons .buttonGroup-buttonWrapper { float: none; }
+
+/* voz exact: memberHeader-main pale blue, tabHeader voz blue, button bg */
+.memberHeader-main { background: rgb(223, 231, 246); }
+.memberHeader-avatar .avatar { display: inline-flex; }
+.block-tabHeader { background: rgb(35, 73, 123); border-bottom: 0; }
+.block-tabHeader .tabs-tab { color: rgb(235, 241, 249); padding: 6px 10px; }
+.block-tabHeader .tabs-tab:hover { color: #fff; }
+.block-tabHeader .tabs-tab.is-active { color: #fff; border-bottom-color: rgb(255, 255, 255); }
+.memberHeader-buttons .button { background: rgb(244, 245, 245); }
+.memberHeader-buttons .buttonGroup-buttonWrapper .button { background: rgb(244, 245, 245); }
+/* voz keeps its own ink on member-header buttons; don't let --link flip them in dark mode. */
+.memberHeader-buttons .button,
+.memberHeader-buttons .buttonGroup-buttonWrapper .button { color: rgb(35, 73, 123); border-color: rgb(180, 185, 190); }
+.memberHeader-buttons .button:hover,
+.memberHeader-buttons .buttonGroup-buttonWrapper .button:hover { background: rgb(224, 226, 229); color: rgb(35, 73, 123); border-color: rgb(180, 185, 190); }
+
+/* member buttons: no wrap, no scroll — voz exact */
+.memberHeader-buttons .button { white-space: nowrap; }
+.memberHeader-buttons { overflow-x: visible; }
+
+/* voz mobile member header breakpoint: 650 not 480 */
+@media (max-width: 650px) {
+  .memberHeader-avatar { position: static; display: block; text-align: center; padding: 10px 10px 0; }
+  .memberHeader-avatar .avatar--l { width: 96px; height: 96px; }
+  .memberHeader-avatar .avatar-fallback { font-size: 58px; }
+  .memberHeader-content { padding: 0 10px 10px; }
+}
+
+/* member buttons compact on narrow screens — keep one line */
+@media (max-width: 650px) {
+  .memberHeader-buttons .button { padding: 4px 8px; font-size: calc(13px * var(--ui-scale)); }
+  .memberHeader-buttons .buttonGroup + .buttonGroup { margin-left: 6px; }
+}
+
+/* override with matching specificity */
+@media (max-width: 650px) {
+  .memberHeader-buttons .buttonGroup .button,
+  .memberHeader-buttons .buttonGroup-buttonWrapper .button { padding: 4px 8px; font-size: calc(13px * var(--ui-scale)); }
+  .memberHeader-buttons .buttonGroup + .buttonGroup { margin-left: 6px; }
+}
+
+/* pairJustifier: voz uses space-between */
+.pairJustifier { justify-content: space-between; }
+
+/* mobile: hide orphan user cell — attribution row inside main already has avatar+name */
+@media (max-width: 620px) {
+  .message--simple:not(.message--quickReply) .message-cell--user { display: none; }
+  .message--simple:not(.message--quickReply) .message-inner { display: block; }
+}
+
+/* thin divider between profile posts (not inside comments) */
+.message--simple:not(.message--quickReply) + .message--simple:not(.message--quickReply) { border-top: 1px solid var(--border, #d5d6db); }
+
+/* mobile: hide composer user cell too — matches voz where only the input strip renders */
+@media (max-width: 620px) {
+  .message--quickReply .message-cell--user { display: none; }
+  .message--quickReply .message-inner { display: block; }
+}
+
+/* pairJustifier: equal columns so each stat centres in its third (voz) */
+.pairJustifier > .pairs { flex: 1 1 0; }
+
+/* memberHeader-buttons: center row on narrow screens */
+@media (max-width: 650px) {
+  .memberHeader-buttons { display: flex; justify-content: center; }
+}
+
+/* mobile member buttons: equal columns, each group centred */
+@media (max-width: 650px) {
+  .memberHeader-buttons { display: flex; justify-content: stretch; }
+  .memberHeader-buttons .buttonGroup { flex: 1 1 0; display: flex; justify-content: center; }
+  .memberHeader-buttons .buttonGroup + .buttonGroup { margin-left: 4px; }
+  .memberHeader-buttons .button { flex: 1 1 auto; justify-content: center; text-align: center; }
+}
+
+/* fix overflow — groups share space evenly but buttons keep natural width */
+@media (max-width: 650px) {
+  .memberHeader-buttons .buttonGroup { flex: 1 1 0; }
+  .memberHeader-buttons .button { flex: 0 0 auto; }
+}
+
+/* flatten buttonGroups so every .button shares equal space */
+@media (max-width: 650px) {
+  .memberHeader-buttons { display: flex; }
+  .memberHeader-buttons .buttonGroup,
+  .memberHeader-buttons .buttonGroup-buttonWrapper { display: contents; }
+  .memberHeader-buttons .button { flex: 1 1 0; margin: 0 2px; min-width: 0; justify-content: center; }
+  .memberHeader-buttons .buttonGroup + .buttonGroup { margin-left: 0; }
+}
+
+/* fused borders between equal-width mobile buttons */
+@media (max-width: 650px) {
+  .memberHeader-buttons .button { margin: 0; border-radius: 0; }
+  .memberHeader-buttons .button + .button { border-left: 0; }
+  .memberHeader-buttons .buttonGroup > .button:first-child { border-radius: 4px 0 0 4px; }
+  .memberHeader-buttons .buttonGroup-buttonWrapper > .button:last-child,
+  .memberHeader-buttons .buttonGroup > .button:last-child { border-radius: 0 4px 4px 0; }
+  .memberHeader-buttons .buttonGroup:first-of-type > .button:first-child { border-radius: 4px 0 0 4px; }
+  .memberHeader-buttons .buttonGroup:last-of-type .buttonGroup-buttonWrapper > .button:last-child { border-radius: 0 4px 4px 0; }
+}
+
+/* mobile member buttons: separate rounded boxes, not fused */
+@media (max-width: 650px) {
+  .memberHeader-buttons .button { border-radius: 4px; border: 0.66px solid rgb(213,216,219); margin: 0 2px; }
+  .memberHeader-buttons .button + .button { border-left: 0.66px solid rgb(213,216,219); }
+}
+
+/* mobile member buttons: crisper border */
+@media (max-width: 650px) {
+  .memberHeader-buttons .button { border: 1px solid rgb(180,185,190); }
+}
+
+/* leave 1px so last button's right border isn't sub-pixel clipped */
+@media (max-width: 650px) {
+  .memberHeader-buttons { padding-right: 1px; }
+}
+
+/* desktop: left-cell avatar is the only one — hide inline attribution avatar */
+@media (min-width: 621px) {
+  .message--simple .message-attribution .avatar--xxs { display: none; }
+}
+
 /* ==== misc.css ==== */
 /* Loading / empty / error states, toast, modal. */
 
@@ -1733,23 +2401,29 @@ img { max-width: 100%; }
 .toast.is-visible { opacity: 1; transform: translateX(-50%) translateY(0); }
 .toast.is-error { background: var(--danger-text); }
 
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
+dialog:modal {
+  overscroll-behavior: contain;
+}
+dialog::backdrop {
   background: var(--scrim);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  z-index: 1000;
+  overflow: hidden;
+  overscroll-behavior: contain;
 }
 .modal {
+  border: 0;
+  padding: 0;
+  margin: auto;
+  color: var(--text);
   background: var(--content-bg);
   border-radius: var(--radius);
   max-width: 560px;
-  width: 100%;
+  width: calc(100% - 32px);
   max-height: 90vh;
   overflow: auto;
+}
+.modal-title {
+  margin: 0;
+  font: inherit;
 }
 .modal-header {
   background: var(--block-header-bg);
@@ -1818,6 +2492,8 @@ img { max-width: 100%; }
   .message { border-radius: 0; }
   .block-outer { padding-left: 12px; padding-right: 12px; }
   .block--messages > .block-header { padding-left: 12px; padding-right: 12px; }
+  /* voz.vn drops the avatar column from the quick reply on phones. */
+  .js-quickReply .message-cell--user { display: none; }
 }
 @media (max-width: 620px) {
   .block--messages .pageNav a.pageNav-author { display: none; }
